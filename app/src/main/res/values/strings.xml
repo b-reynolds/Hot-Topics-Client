@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Hot Topics</string>
     <string name="btnSendText">Send</string>
+    <string name="title_activity_room_list">RoomListActivity</string>
 </resources>
