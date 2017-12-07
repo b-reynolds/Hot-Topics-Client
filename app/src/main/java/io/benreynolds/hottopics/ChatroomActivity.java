@@ -1,13 +1,13 @@
-package benreynolds.io.hottopics;
+package io.benreynolds.hottopics;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-public class RoomListActivity extends AppCompatActivity {
+public class ChatroomActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_room_list);
+        setContentView(R.layout.activity_chatroom);
     }
 }
