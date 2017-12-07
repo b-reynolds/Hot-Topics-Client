@@ -14,6 +14,7 @@ public class UsernameResponsePacket extends BooleanResponsePacket {
      */
     public UsernameResponsePacket(final boolean response) {
         super(response);
+        mId = ID;
     }
 
 }

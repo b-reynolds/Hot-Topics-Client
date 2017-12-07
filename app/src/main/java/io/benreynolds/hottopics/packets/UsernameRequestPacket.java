@@ -25,6 +25,7 @@ public class UsernameRequestPacket extends Packet {
      * @param username Client's requested username.
      */
     public UsernameRequestPacket(final String username) {
+        mId = ID;
         mUsername = username;
     }
 
