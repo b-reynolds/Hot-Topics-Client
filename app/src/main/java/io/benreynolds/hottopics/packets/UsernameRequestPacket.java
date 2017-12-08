@@ -11,11 +11,14 @@ public class UsernameRequestPacket extends Packet {
     public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(UsernameRequestPacket.class,
             null);
 
-    /**
-     * Regular expression used to validate usernames. Usernames can consist of alphanumeric characters, underscores
-     * and periods. Underscores and periods can not be consecutive.
-     */
-    private static final String REGULAR_EXPRESSION = "^(?=.{8,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$";
+    /** Regular expression used to validate usernames (must consist of alphanumeric characters). */
+    public static final String INVALID_CHARACTER_REGEX = "^.*[^a-zA-Z0-9 ].*$";
+
+    /** Minimum username length. */
+    public static final int MIN_LENGTH = 4;
+
+    /** Maximum username length. */
+    public static final int MAX_LENGTH = 12;
 
     /** Client's requested username. */
     @SerializedName("username")
@@ -36,7 +39,8 @@ public class UsernameRequestPacket extends Packet {
      */
     @Override
     public boolean isValid() {
-        return mId != null && mUsername != null && mUsername.matches(REGULAR_EXPRESSION);
+        return mId != null && mUsername != null && mUsername.length() > MIN_LENGTH &&
+                mUsername.length() < MAX_LENGTH && !mUsername.matches(INVALID_CHARACTER_REGEX);
     }
 
     /**

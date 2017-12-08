@@ -11,15 +11,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="io.benreynolds.io.benreynolds.hottopics.MainActivity">
+        <activity android:name="io.benreynolds.hottopics.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="io.benreynolds.io.benreynolds.hottopics.RoomListActivity" />
-        <activity android:name="io.benreynolds.io.benreynolds.hottopics.ChatroomActivity"></activity>
+        <activity android:name="io.benreynolds.hottopics.RoomListActivity" />
+        <activity android:name="io.benreynolds.hottopics.ChatroomActivity"></activity>
     </application>
 
 </manifest>

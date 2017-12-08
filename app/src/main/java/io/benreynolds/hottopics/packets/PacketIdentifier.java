@@ -16,7 +16,7 @@ public class PacketIdentifier {
 
     /** Populated with {@code Packet} and {@code Integer} key/value pairs that are used to uniquely identify
      * {@code Packet} derivatives before deserialization. */
-    final static Map<Class<? extends Packet>, Integer> PACKET_IDS = new HashMap<>();
+    public final static Map<Class<? extends Packet>, Integer> PACKET_IDS = new HashMap<>();
 
     /** Contains all known and supported {@code Packet} derivatives. */
     private static final List<Class<? extends Packet>> PACKETS = Arrays.asList(
@@ -42,13 +42,15 @@ public class PacketIdentifier {
         }
     }
 
-    public static Packet convertToPacket(String json, Class<? extends Packet> packetType) {
+    public static <T extends Packet> T convertToPacket(final String string, Class<T> packetType) {
+        T packet;
         try {
-            return new Gson().fromJson(json, packetType);
+            packet = new Gson().fromJson(string, packetType);
         }
         catch(JsonSyntaxException exception) {
             return null;
         }
+        return packet != null && packet.isValid() ? packet : null;
     }
 
 }

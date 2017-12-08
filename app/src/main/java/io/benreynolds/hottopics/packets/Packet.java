@@ -1,5 +1,6 @@
 package io.benreynolds.hottopics.packets;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -29,4 +30,12 @@ public abstract class Packet {
      */
     public abstract boolean isValid();
 
+    /**
+     * Returns the JSON representation of the {@code Packet}.
+     * @return JSON representation of the {@code Packet}.
+     */
+    @Override
+    public String toString() {
+        return new Gson().toJson(this);
+    }
 }
