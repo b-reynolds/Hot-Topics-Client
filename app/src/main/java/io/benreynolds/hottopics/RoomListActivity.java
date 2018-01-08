@@ -7,11 +7,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import io.benreynolds.hottopics.packets.Chatroom;
@@ -36,6 +34,8 @@ public class RoomListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room_list);
 
+        new Thread(new CheckConnectionStatus()).start();
+
         mRoomListAdapter = new ArrayAdapter<String>
                 (this, android.R.layout.simple_list_item_1, mChatrooms);
 
@@ -54,6 +54,29 @@ public class RoomListActivity extends AppCompatActivity {
             }
 
         });
+
+    }
+
+    /**
+     * {@code CheckConnectionStatus} checks whether the {@code WebSocketCommunicator} has an active
+     * connection to the server. If no active connection is found, the application transitions to
+     * {@code MainActivity}.
+     */
+    public class CheckConnectionStatus implements Runnable {
+
+        @Override
+        public void run() {
+            while(!Thread.currentThread().isInterrupted()) {
+                if (!mWebSocketCommunicator.isConnected()) {
+                    Log.w(TAG, "Connection Lost Unexpectedly.");
+                    Intent mainActivity = new Intent(RoomListActivity.this, MainActivity.class);
+                    mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(mainActivity);
+                    break;
+                }
+                Thread.yield();
+            }
+        }
 
     }
 
