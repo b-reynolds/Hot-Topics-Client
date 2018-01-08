@@ -16,4 +16,10 @@
     <!-- Message Box Buttons -->
     <string name="message_box_button_ok">OK</string>
 
+    <!-- Login Status Bar Text -->
+    <string name="status_idle"></string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_connected">Connected.</string>
+    <string name="status_connection_failed">Connection failed.</string>
+
 </resources>

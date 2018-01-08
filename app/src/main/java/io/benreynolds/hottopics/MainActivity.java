@@ -9,20 +9,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import io.benreynolds.hottopics.packets.UsernameRequestPacket;
 import io.benreynolds.hottopics.packets.UsernameResponsePacket;
-
-/**
- * TODO:
- *
- *  1.) Validate Username
- *  2.) Connect To The Server
- *  3.) Send Username Request
- *  4.) Handle Username Response
- *  5.) Rooms
-
- */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,22 +20,29 @@ public class MainActivity extends AppCompatActivity {
 
     private WebSocketCommunicator mWebSocketCommunicator = WebSocketCommunicator.getInstance();
 
+    private Thread tEstablishConnection;
+
+    private TextView lblStatus;
     private EditText txtUsername;
     private Button btnConnect;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        lblStatus = findViewById(R.id.lblStatus);
         txtUsername = findViewById(R.id.txtUsername);
         btnConnect = findViewById(R.id.btnConnect);
 
-
-        //mWebsocketClient.connect();
         btnConnect.setOnClickListener(new BtnConnectListener());
 
+        setStatus(getString(R.string.status_idle));
+
+        // If the WebSocketCommunicator has an active connection to the server then disconnect it.
+        if(mWebSocketCommunicator.isConnected()) {
+            mWebSocketCommunicator.disconnect();
+        }
     }
 
     private void showMessageBox(final String message) {
@@ -61,120 +58,148 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setFormEnabled(final boolean enabled) {
+    private void setStatus(final String status) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                txtUsername.setEnabled(enabled);
-                btnConnect.setEnabled(enabled);
-                btnConnect.setClickable(enabled);
+                lblStatus.setText(status);
             }
         });
     }
 
-    public class ConnectToServer implements Runnable {
+    public class EstablishConnection implements Runnable {
 
-        private UsernameRequestPacket mUsernameRequestPacket;
+        @Override
+        public void run() {
+            Log.w(TAG, "Attempting to establish a connection to the server.");
 
-        ConnectToServer(final UsernameRequestPacket usernameRequestPacket) {
-            mUsernameRequestPacket = usernameRequestPacket;
-            run();
+            // Ensure that the WebSocketCommunicator is not already connected or establishing a connection.
+            if(mWebSocketCommunicator.isConnected() || mWebSocketCommunicator.isConnecting()) {
+                Log.w(TAG, "Attempted to establish a connection to the server whilst already connecting/connected.");
+                return;
+            }
+
+            // Attempt to connect to the server.
+            mWebSocketCommunicator.connect();
+            setStatus(getString(R.string.status_connecting));
+            while (mWebSocketCommunicator.isConnecting()) {
+                Thread.yield();
+            }
+
+            if(!mWebSocketCommunicator.isConnected()) {
+                setStatus(getString(R.string.status_connection_failed));
+                Log.w(TAG, "Failed to establish a connection to the server.");
+                return;
+            }
+
+            setStatus(getString(R.string.status_connected
+            ));
+            Log.d(TAG, "Connected to the server.");
+        }
+
+    }
+
+    public void setFormState(final boolean state) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtUsername.setEnabled(state);
+                btnConnect.setClickable(state);
+                btnConnect.setEnabled(state);
+            }
+        });
+    }
+
+    public class RequestUsername implements Runnable {
+
+        private final String mUsername;
+
+        RequestUsername(final String username) {
+            mUsername = username;
         }
 
         @Override
         public void run() {
 
-            if (mWebSocketCommunicator.isConnected()) {
-                return;
+            // If the WebSocketCommunicator is not connected to the server, attempt to establish a connection.
+            if(tEstablishConnection == null || !tEstablishConnection.isAlive()) {
+                tEstablishConnection = new Thread(new EstablishConnection());
+                tEstablishConnection.start();
             }
 
-            Log.i(TAG, "Connecting to the Hot Topics server.");
-
-            mWebSocketCommunicator.connect();
-            while (mWebSocketCommunicator.isConnecting()) {
-                assert true;
+            while (tEstablishConnection.isAlive()) {
+                Thread.yield();
             }
 
             if (!mWebSocketCommunicator.isConnected()) {
-                Log.i(TAG, "Failed to connect to the server.");
-                showMessageBox(getString(R.string.connection_timeout_error));
+                showMessageBox("Failed to connect to the server");
+                setFormState(true);
                 return;
             }
 
-            mWebSocketCommunicator.sendMessage(mUsernameRequestPacket.toString());
+            UsernameRequestPacket usernameRequestPacket = new UsernameRequestPacket(mUsername);
+            if(!usernameRequestPacket.isValid()) {
+                setFormState(true);
+                return;
+            }
+
+            mWebSocketCommunicator.sendPacket(usernameRequestPacket);
 
             while (!Thread.currentThread().isInterrupted()) {
                 UsernameResponsePacket responsePacket = mWebSocketCommunicator.pollPacket(UsernameResponsePacket.class);
-                if (responsePacket == null || !responsePacket.isValid()) {
+                if (responsePacket == null) {
                     continue;
                 }
 
                 if (!responsePacket.getResponse()) {
                     showMessageBox(getString(R.string.username_unknown_error));
-                    setFormEnabled(true);
-                } else {
-                    startActivity(new Intent(MainActivity.this, RoomListActivity.class));
+                    setFormState(true);
+                    return;
                 }
 
+                Intent roomList = new Intent(MainActivity.this, RoomListActivity.class);
+                roomList.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                startActivity(roomList);
                 break;
             }
         }
+
     }
-//
-//    public class ResponseListener implements Runnable {
-//        public void run() {
-//            while (!Thread.currentThread().isInterrupted()) {
-//                UsernameResponsePacket responsePacket = mWebsocketClient.getPacket(UsernameResponsePacket.class);
-//                if(responsePacket == null || !responsePacket.isValid()) {
-//                    continue;
-//                }
-//
-//                if(!responsePacket.getResponse()) {
-//                    showMessageBox(getString(R.string.username_unknown_error));
-//                    setFormEnabled(true);
-//                }
-//                else {
-//                    startActivity(new Intent(MainActivity.this, RoomListActivity.class));
-//                }
-//
-//                break;
-//            }
-//        }
-//    }
 
     private class BtnConnectListener implements View.OnClickListener {
 
         @Override
         public void onClick(View view) {
-            // Disable the Activity's controls whilst the desired username is validated.
-            setFormEnabled(false);
-
             // Store the user's desired username, disregarding any trailing or leading spaces.
             String requestedUsername = txtUsername.getText().toString().trim();
+
+            // Disable the form while validating the username.
+            setFormState(false);
 
             // Ensure that the username consists of only alphanumeric characters.
             if (requestedUsername.matches(UsernameRequestPacket.INVALID_CHARACTER_REGEX)) {
                 showMessageBox(getString(R.string.username_character_error));
-                setFormEnabled(true);
+                setFormState(true);
                 return;
             }
 
             // Ensure that the username is more than MIN_LENGTH characters in length.
             if (requestedUsername.length() < UsernameRequestPacket.MIN_LENGTH) {
                 showMessageBox(getString(R.string.username_short_error));
-                setFormEnabled(true);
+                setFormState(true);
                 return;
             }
 
             // Ensure that the username is less than MAX_LENGTH characters in length.
             if (requestedUsername.length() > UsernameRequestPacket.MAX_LENGTH) {
                 showMessageBox(getString(R.string.username_long_error));
-                setFormEnabled(true);
+                setFormState(true);
                 return;
             }
 
-            // Start a thread that listens for responses to the request.
-            new Thread(new ConnectToServer(new UsernameRequestPacket(requestedUsername))).start();
+            // Connect to the server and request the specified username.
+            new Thread(new RequestUsername(requestedUsername)).start();
         }
 
     }

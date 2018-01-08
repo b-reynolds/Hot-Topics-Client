@@ -95,8 +95,7 @@ public class WebSocketCommunicator extends WebSocketListener {
      */
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
-        Log.d(this.getClass().getSimpleName(), String.format("onOpen() { WebSocket: \"%s\"," +
-                " Response: \"%s\".", webSocket.toString(), response.toString()));
+        Log.d(TAG, String.format("onOpen() { WebSocket: \"%s\"," + " Response: \"%s\".", webSocket.toString(), response != null ? response.toString() : null));
         mConnecting = false;
         mConnected = true;
     }
@@ -109,14 +108,20 @@ public class WebSocketCommunicator extends WebSocketListener {
     @Override
     public void onMessage(WebSocket webSocket, String message) {
         UnidentifiedPacket unidentifiedPacket = PacketIdentifier.convertToPacket(message, UnidentifiedPacket.class);
-        if (unidentifiedPacket == null || !PacketIdentifier.PACKET_IDS.containsValue(unidentifiedPacket.getId())) {
-            Log.w(TAG, String.format("Invalid Packet Received: \"%s\".", message));
+        if (unidentifiedPacket == null || !unidentifiedPacket.isValid() || !PacketIdentifier.PACKET_IDS.containsValue(unidentifiedPacket.getId())) {
+            Log.w(TAG, String.format("Unknown Packet Received: \"%s\".", message));
             return;
         }
 
+        // TODO: ONLY ADD VALID PACKETS!!
         for (Map.Entry<Class<? extends Packet>, Integer> entry : PacketIdentifier.PACKET_IDS.entrySet()) {
             if (Objects.equals(unidentifiedPacket.getId(), entry.getValue())) {
-                mReceivedPackets.add(new Gson().fromJson(message, entry.getKey()));
+                Packet convertedPacket = new Gson().fromJson(message, entry.getKey());
+                if(!convertedPacket.isValid()) {
+                    Log.w(TAG, String.format("Invalid Packet Received: \"%s\".", message));
+                }
+
+                mReceivedPackets.add(convertedPacket);
                 Log.i(TAG, String.format("Packet Received: \"%s\".", mReceivedPackets.peek().toString()));
                 break;
             }
@@ -131,7 +136,7 @@ public class WebSocketCommunicator extends WebSocketListener {
      */
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason) {
-        Log.d(this.getClass().getSimpleName(), String.format("onClosing() { WebSocket: \"%s\"," +
+        Log.d(TAG, String.format("onClosing() { WebSocket: \"%s\"," +
                 " Code: \"%s\", Reason: \"%s\".", webSocket.toString(), code, reason));
     }
 
@@ -144,7 +149,7 @@ public class WebSocketCommunicator extends WebSocketListener {
      */
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
-        Log.d(this.getClass().getSimpleName(), String.format("onClosed() { WebSocket: \"%s\"," +
+        Log.d(TAG, String.format("onClosed() { WebSocket: \"%s\"," +
                 " Code: \"%s\", Reason: \"%s\".", webSocket.toString(), code, reason));
         mConnected = false;
     }
@@ -159,7 +164,7 @@ public class WebSocketCommunicator extends WebSocketListener {
      */
     @Override
     public void onFailure(WebSocket webSocket, Throwable throwable, @Nullable Response response) {
-        Log.e(this.getClass().getSimpleName(), String.format("onFailure() { WebSocket: \"%s\"," +
+        Log.e(TAG, String.format("onFailure() { WebSocket: \"%s\"," +
                 "Throwable: \"%s\", Response: \"%s\".", webSocket.toString(), throwable,
                 response != null ? response.toString() : null));
         mConnecting = false;
@@ -167,22 +172,28 @@ public class WebSocketCommunicator extends WebSocketListener {
     }
 
     /**
-     * Sends a message to the server.
-     * @param message message to send.
+     * Sends a {@code Packet} to the server.
+     * @param packet {@code Packet} to send.
      */
-    public void sendMessage(final String message) {
+    public void sendPacket(final Packet packet) {
         if(mWebSocket != null && mConnected) {
-            mWebSocket.send(message);
+            Log.d(TAG, String.format("Sending Packet: \"%s\".", packet.toString()));
+            mWebSocket.send(packet.toString());
         }
     }
 
     // TODO: Redesign to avoid the need for performing an unchecked type cast.
-    @SuppressWarnings("unchecked")
     public <T extends Packet> T pollPacket(Class<T> packetType) {
         for(Packet receivedPacket : mReceivedPackets) {
             if(receivedPacket.getId().equals(PacketIdentifier.PACKET_IDS.get(packetType))) {
                 mReceivedPackets.remove(receivedPacket);
-                return (T)receivedPacket;
+                if(receivedPacket.getClass().equals(packetType)) {
+                    T packet = (T)receivedPacket;
+                    if(packet.isValid()) {
+                        return packet;
+                    }
+                }
+                return null;
             }
         }
         return null;
