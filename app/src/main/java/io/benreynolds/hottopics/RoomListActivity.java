@@ -34,6 +34,7 @@ public class RoomListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room_list);
 
+        // Begin monitoring the connection status
         new Thread(new CheckConnectionStatus()).start();
 
         mRoomListAdapter = new ArrayAdapter<String>
@@ -82,10 +83,24 @@ public class RoomListActivity extends AppCompatActivity {
 
     public class PopulateChatroomList implements Runnable {
 
+        /** Amount of time waited for a response. */
+        private static final double TIMEOUT_SECONDS = 5;
+
         @Override
         public void run() {
+
+            Timer tmrTimeout = new Timer(TIMEOUT_SECONDS);
             mWebSocketCommunicator.sendPacket(new ChatroomsRequestPacket());
+            tmrTimeout.start();
+
             while (!Thread.currentThread().isInterrupted()) {
+
+                if(tmrTimeout.hasElapsed()) {
+                    // TODO: Handle this error case in a more graceful manner.
+                    mWebSocketCommunicator.disconnect();
+                    break;
+                }
+
                 ChatroomsResponsePacket responsePacket = mWebSocketCommunicator.pollPacket(ChatroomsResponsePacket.class);
                 if (responsePacket == null) {
                     continue;
@@ -94,6 +109,7 @@ public class RoomListActivity extends AppCompatActivity {
                 for(Chatroom chatroom : responsePacket.getChatrooms()) {
                     mChatrooms.add(chatroom.getName());
                 }
+
                 mRoomListAdapter.notifyDataSetChanged();
                 break;
             }
