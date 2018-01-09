@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import io.benreynolds.hottopics.packets.Packet;
@@ -39,7 +40,7 @@ public class WebSocketCommunicator extends WebSocketListener {
 
     /** Used to store the '{@code Packet}'s that the {@code WebSocketCommunicator} has received from
      *  the server. */
-    private final Queue<Packet> mReceivedPackets = new LinkedList<>();
+    private final Queue<Packet> mReceivedPackets = new ConcurrentLinkedQueue<>();
 
     /** WebSocket. */
     private WebSocket mWebSocket;
@@ -119,6 +120,7 @@ public class WebSocketCommunicator extends WebSocketListener {
                 Packet convertedPacket = new Gson().fromJson(message, entry.getKey());
                 if(!convertedPacket.isValid()) {
                     Log.w(TAG, String.format("Invalid Packet Received: \"%s\".", message));
+                    break;
                 }
 
                 mReceivedPackets.add(convertedPacket);

@@ -110,7 +110,12 @@ public class RoomListActivity extends AppCompatActivity {
                     mChatrooms.add(chatroom.getName());
                 }
 
-                mRoomListAdapter.notifyDataSetChanged();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mRoomListAdapter.notifyDataSetChanged();
+                    }
+                });
                 break;
             }
         }

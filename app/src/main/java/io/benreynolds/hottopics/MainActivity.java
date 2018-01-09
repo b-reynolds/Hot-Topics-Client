@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private WebSocketCommunicator mWebSocketCommunicator = WebSocketCommunicator.getInstance();
 
     private Thread tEstablishConnection;
+    private Thread tRequestUsername;
 
     private TextView lblStatus;
     private EditText txtUsername;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         setStatus(getString(R.string.status_idle));
 
-        // If the WebSocketCommunicator has an active connection to the server then disconnect it.
+        // If for some reason the WebSocketCommunicator currently has an active connection to the server, disconnect it.
         if(mWebSocketCommunicator.isConnected()) {
             mWebSocketCommunicator.disconnect();
         }
@@ -67,11 +68,49 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public class EstablishConnection implements Runnable {
+    public class RequestUsernameTask implements Runnable {
+
+        private static final double TIMEOUT_PERIOD = 5.0;
+
+        private String mUsername;
+        private UsernameResponsePacket mResponse;
+
+        RequestUsernameTask(final String username) {
+            mUsername = username;
+        }
 
         @Override
         public void run() {
-            Log.w(TAG, "Attempting to establish a connection to the server.");
+            Timer mTimer = new Timer(TIMEOUT_PERIOD);
+            mWebSocketCommunicator.sendPacket(new UsernameRequestPacket(mUsername));
+            mTimer.start();
+
+            while(!Thread.currentThread().isInterrupted()) {
+                if(mTimer.hasElapsed()) {
+                    break;
+                }
+
+                UsernameResponsePacket responsePacket = mWebSocketCommunicator.pollPacket(UsernameResponsePacket.class);
+                if(responsePacket == null) {
+                    continue;
+                }
+
+                mResponse = responsePacket;
+                break;
+            }
+        }
+
+        boolean getResponse() {
+            return mResponse.getResponse();
+        }
+
+    }
+
+    public class EstablishConnectionTask implements Runnable {
+
+        @Override
+        public void run() {
+            Log.i(TAG, "Attempting to establish a connection to the server.");
 
             // Ensure that the WebSocketCommunicator is not already connected or establishing a connection.
             if(mWebSocketCommunicator.isConnected() || mWebSocketCommunicator.isConnecting()) {
@@ -94,7 +133,64 @@ public class MainActivity extends AppCompatActivity {
 
             setStatus(getString(R.string.status_connected
             ));
-            Log.d(TAG, "Connected to the server.");
+            Log.i(TAG, "Connected to the server.");
+        }
+
+    }
+
+    public class DoIt implements Runnable {
+
+        private String mUsername;
+
+        DoIt(final String username) {
+            mUsername = username;
+        }
+
+        @Override
+        public void run() {
+
+            setFormState(false);
+
+            if(tEstablishConnection != null && tEstablishConnection.isAlive()) {
+                tEstablishConnection.interrupt();
+            }
+
+            tEstablishConnection = new Thread(new EstablishConnectionTask());
+            tEstablishConnection.start();
+
+            while(tEstablishConnection.isAlive()) {
+                Thread.yield();
+            }
+
+            if(!mWebSocketCommunicator.isConnected()) {
+                setStatus("Failed to connect.");
+                setFormState(true);
+                return;
+            }
+
+            setStatus("Connected.");
+
+            if(tRequestUsername != null && tRequestUsername.isAlive()) {
+                tRequestUsername.interrupt();
+            }
+
+            RequestUsernameTask requestUsernameTask = new RequestUsernameTask(mUsername);
+            tRequestUsername = new Thread(requestUsernameTask);
+            tRequestUsername.start();
+
+            while(tRequestUsername.isAlive()) {
+                Thread.yield();
+            }
+
+            if(!requestUsernameTask.getResponse()){
+                setStatus("Username in use");
+                setFormState(true);
+                return;
+            }
+
+            Intent roomList = new Intent(MainActivity.this, RoomListActivity.class);
+            roomList.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(roomList);
         }
 
     }
@@ -108,63 +204,6 @@ public class MainActivity extends AppCompatActivity {
                 btnConnect.setEnabled(state);
             }
         });
-    }
-
-    public class RequestUsername implements Runnable {
-
-        private final String mUsername;
-
-        RequestUsername(final String username) {
-            mUsername = username;
-        }
-
-        @Override
-        public void run() {
-
-            // If the WebSocketCommunicator is not connected to the server, attempt to establish a connection.
-            if(tEstablishConnection == null || !tEstablishConnection.isAlive()) {
-                tEstablishConnection = new Thread(new EstablishConnection());
-                tEstablishConnection.start();
-            }
-
-            while (tEstablishConnection.isAlive()) {
-                Thread.yield();
-            }
-
-            if (!mWebSocketCommunicator.isConnected()) {
-                showMessageBox("Failed to connect to the server");
-                setFormState(true);
-                return;
-            }
-
-            UsernameRequestPacket usernameRequestPacket = new UsernameRequestPacket(mUsername);
-            if(!usernameRequestPacket.isValid()) {
-                setFormState(true);
-                return;
-            }
-
-            mWebSocketCommunicator.sendPacket(usernameRequestPacket);
-
-            while (!Thread.currentThread().isInterrupted()) {
-                UsernameResponsePacket responsePacket = mWebSocketCommunicator.pollPacket(UsernameResponsePacket.class);
-                if (responsePacket == null) {
-                    continue;
-                }
-
-                if (!responsePacket.getResponse()) {
-                    showMessageBox(getString(R.string.username_unknown_error));
-                    setFormState(true);
-                    return;
-                }
-
-                Intent roomList = new Intent(MainActivity.this, RoomListActivity.class);
-                roomList.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                startActivity(roomList);
-                break;
-            }
-        }
-
     }
 
     private class BtnConnectListener implements View.OnClickListener {
@@ -199,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // Connect to the server and request the specified username.
-            new Thread(new RequestUsername(requestedUsername)).start();
+            new Thread(new DoIt(requestedUsername)).start();
         }
 
     }
