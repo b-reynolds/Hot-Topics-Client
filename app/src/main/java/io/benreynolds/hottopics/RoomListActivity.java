@@ -17,6 +17,7 @@ import io.benreynolds.hottopics.packets.ChatroomsRequestPacket;
 import io.benreynolds.hottopics.packets.ChatroomsResponsePacket;
 import io.benreynolds.hottopics.packets.JoinChatroomRequestPacket;
 import io.benreynolds.hottopics.packets.JoinChatroomResponsePacket;
+import io.benreynolds.hottopics.packets.LeaveChatroomRequestPacket;
 
 public class RoomListActivity extends AppCompatActivity {
 
@@ -144,7 +145,6 @@ public class RoomListActivity extends AppCompatActivity {
                 }
 
                 Intent chatRoom = new Intent(RoomListActivity.this, ChatroomActivity.class);
-                chatRoom.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(chatRoom);
             }
         }
