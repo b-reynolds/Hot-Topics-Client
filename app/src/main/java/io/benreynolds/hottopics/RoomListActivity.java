@@ -17,7 +17,6 @@ import io.benreynolds.hottopics.packets.ChatroomsRequestPacket;
 import io.benreynolds.hottopics.packets.ChatroomsResponsePacket;
 import io.benreynolds.hottopics.packets.JoinChatroomRequestPacket;
 import io.benreynolds.hottopics.packets.JoinChatroomResponsePacket;
-import io.benreynolds.hottopics.packets.LeaveChatroomRequestPacket;
 
 public class RoomListActivity extends AppCompatActivity {
 
@@ -62,7 +61,7 @@ public class RoomListActivity extends AppCompatActivity {
     /**
      * {@code CheckConnectionStatus} checks whether the {@code WebSocketCommunicator} has an active
      * connection to the server. If no active connection is found, the application transitions to
-     * {@code MainActivity}.
+     * {@code LoginActivity}.
      */
     public class CheckConnectionStatus implements Runnable {
 
@@ -71,7 +70,7 @@ public class RoomListActivity extends AppCompatActivity {
             while(!Thread.currentThread().isInterrupted()) {
                 if (!mWebSocketCommunicator.isConnected()) {
                     Log.w(TAG, "Connection Lost Unexpectedly.");
-                    Intent mainActivity = new Intent(RoomListActivity.this, MainActivity.class);
+                    Intent mainActivity = new Intent(RoomListActivity.this, LoginActivity.class);
                     mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainActivity);
                     break;
@@ -145,6 +144,7 @@ public class RoomListActivity extends AppCompatActivity {
                 }
 
                 Intent chatRoom = new Intent(RoomListActivity.this, ChatroomActivity.class);
+                chatRoom.putExtra("ROOM_NAME", mRoomName);
                 startActivity(chatRoom);
             }
         }

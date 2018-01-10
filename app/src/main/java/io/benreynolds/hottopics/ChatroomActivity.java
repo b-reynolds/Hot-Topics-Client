@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,9 @@ public class ChatroomActivity extends AppCompatActivity {
         mMessageList.setAdapter(mMessageListAdapter);
 
         mMessage = findViewById(R.id.txtMessage);
+
+        TextView lblTitle = findViewById(R.id.lblTitle);
+        lblTitle.setText(getIntent().getStringExtra("ROOM_NAME"));
 
         mBtnSend = findViewById(R.id.btnSend);
         mBtnSend.setOnClickListener(new View.OnClickListener() {
