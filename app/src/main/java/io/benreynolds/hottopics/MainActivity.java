@@ -23,12 +23,15 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
-    private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
+    private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR =
+            WebSocketCommunicator.getInstance();
 
-    /** Thread used to establish connections to the Hot Topics Server (see {@code EstablishConnectionTask}). */
+    /** Thread used to establish connections to the Hot Topics Server
+     *  (see {@code EstablishConnectionTask}). */
     private Thread tEstablishConnection;
 
-    /** Thread used to send a {@code UsernameRequestPacket} to the Hot Topics server and await a response. */
+    /** Thread used to send a {@code UsernameRequestPacket} to the Hot Topics server and await a
+     *  response. */
     private Thread tRequestUsername;
 
     /** Status label. */
@@ -56,7 +59,8 @@ public class MainActivity extends AppCompatActivity {
         // Set the default activity status.
         setStatus(getString(R.string.status_idle));
 
-        // If for some reason the WebSocketCommunicator currently has an active connection to the server, disconnect it.
+        // If for some reason the WebSocketCommunicator currently has an active connection to the
+        // server, disconnect it.
         if(WEB_SOCKET_COMMUNICATOR.isConnected()) {
             WEB_SOCKET_COMMUNICATOR.disconnect();
         }
@@ -93,7 +97,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Updates '{@code MainActivity}'s UI state. Used to prevent user interaction whilst awaiting connections and responses to requests.
+     * Updates '{@code MainActivity}'s UI state. Used to prevent user interaction whilst awaiting
+     * connections and responses to requests.
      * @param state desired activity state.
      */
     public void setActivityState(final boolean state) {
@@ -158,9 +163,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            // Ensure that the WebSocketCommunicator is not already connected or establishing a connection.
+            // Ensure that the WebSocketCommunicator is not already connected or establishing a
+            // connection.
             if(WEB_SOCKET_COMMUNICATOR.isConnected() || WEB_SOCKET_COMMUNICATOR.isConnecting()) {
-                Log.w(TAG, "Attempted to establish a connection to the server whilst already connected/connecting.");
+                Log.w(TAG, "Attempted to establish a connection to the server whilst already" +
+                        " connected/connecting.");
                 return;
             }
 
@@ -206,9 +213,10 @@ public class MainActivity extends AppCompatActivity {
             // Disable the form whilst connecting and requesting the username.
             setActivityState(false);
 
-            // If a connection to the Hot Topics server is not established, attempt to establish one.
+            // If a connection to the Hot Topics server is not established then establish one.
             if(!WEB_SOCKET_COMMUNICATOR.isConnected()) {
-                // If an instance of the tEstablishConnection thread exits, interrupt it before creating a new one.
+                // If an instance of the tEstablishConnection thread exits, interrupt it before
+                // creating a new one.
                 if (tEstablishConnection != null && tEstablishConnection.isAlive()) {
                     tEstablishConnection.interrupt();
                 }
@@ -222,25 +230,28 @@ public class MainActivity extends AppCompatActivity {
                     Thread.yield();
                 }
 
-                // If a connection could not be established, update its status bar to reflect this and re-enable the form before killing the thread.
+                // If a connection could not be established, update its status bar to reflect this
+                // and re-enable the form before killing the thread.
                 if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
                     setStatus("Failed to connect.");
                     setActivityState(true);
                     return;
                 }
 
-                // A connection was established successfully, update the form status to reflect this.
+                // A connection was established, update the form status to reflect this.
                 setStatus("Connected.");
             }
 
-            // If an instance of the tRequestUsername thread exits, interrupt it before creating a new one.
+            // If an instance of the tRequestUsername thread exists, interrupt it and construct
+            // a new one.
             if(tRequestUsername != null && tRequestUsername.isAlive()) {
                 tRequestUsername.interrupt();
             }
 
             // Create and run a new instance of the username RequestResponseTask
             UsernameRequestPacket usernameRequestPacket = new UsernameRequestPacket(mUsername);
-            RequestResponseTask<UsernameRequestPacket> requestUsernameTask = new RequestResponseTask<>(usernameRequestPacket, UsernameResponsePacket.class);
+            RequestResponseTask<UsernameRequestPacket> requestUsernameTask =
+                    new RequestResponseTask<>(usernameRequestPacket, UsernameResponsePacket.class);
             tRequestUsername = new Thread(requestUsernameTask);
             tRequestUsername.start();
 
@@ -249,14 +260,16 @@ public class MainActivity extends AppCompatActivity {
                 Thread.yield();
             }
 
-            // If the server rejected the username, update its status bar to reflect this and re-enable the form before killing the thread.
+            // If the server rejected the username, update its status bar to reflect this and
+            // re-enable the form before killing the thread.
             if(!((UsernameResponsePacket)requestUsernameTask.getResponse()).getResponse()){
                 setStatus("Username in use");
                 setActivityState(true);
                 return;
             }
 
-            // The username was accepted and assigned to the connection by the server, transition to the RoomListActivity}.
+            // The username was accepted and assigned to the connection by the server, transition to
+            // the RoomListActivity}.
             Intent roomList = new Intent(MainActivity.this, RoomListActivity.class);
             roomList.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(roomList);
