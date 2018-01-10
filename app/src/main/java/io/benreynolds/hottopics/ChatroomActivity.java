@@ -50,6 +50,7 @@ public class ChatroomActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         mMessageListAdapter.notifyDataSetChanged();
+                        mMessageList.setSelection(mMessageList.getCount() - 1);
                     }
                 });
             }
@@ -121,7 +122,7 @@ public class ChatroomActivity extends AppCompatActivity {
     /**
      * {@code CheckConnectionStatus} checks whether the {@code WebSocketCommunicator} has an active
      * connection to the server. If no active connection is found, the application transitions to
-     * {@code MainActivity}.
+     * {@code LoginActivity}.
      */
     public class CheckConnectionStatus implements Runnable {
 
@@ -130,7 +131,7 @@ public class ChatroomActivity extends AppCompatActivity {
             while(!Thread.currentThread().isInterrupted()) {
                 if (!mWebSocketCommunicator.isConnected()) {
                     Log.w(TAG, "Connection Lost Unexpectedly.");
-                    Intent mainActivity = new Intent(ChatroomActivity.this, MainActivity.class);
+                    Intent mainActivity = new Intent(ChatroomActivity.this, LoginActivity.class);
                     mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainActivity);
                     break;
