@@ -1,7 +1,7 @@
 package io.benreynolds.hottopics;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +21,7 @@ import io.benreynolds.hottopics.packets.JoinChatroomResponsePacket;
  * {@code RoomListActivity} handles the retrieval of and connection to rooms from the Hot Topics
  * server. Transitions to {@code ChatroomActivity} and {@code LoginActivity}.
  */
-public class RoomListActivity extends AppCompatActivity {
+public class RoomListActivity extends Activity {
 
     /** String key for the name of the chatroom sent to {@code ChatroomActivity} */
     public static final String ROOM_NAME_EXTRA = "ROOM_NAME";
@@ -202,9 +202,11 @@ public class RoomListActivity extends AppCompatActivity {
             // Enable the UI.
             setActivityState(true);
 
-            if (!((JoinChatroomResponsePacket) requestResponseTask.getResponse()).getResponse()) {
-                Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                        Thread.currentThread().getId()));
+            JoinChatroomResponsePacket responsePacket = (JoinChatroomResponsePacket)
+                    requestResponseTask.getResponse();
+            if(responsePacket == null || !responsePacket.getResponse()) {
+                Log.d(TAG, String.format("Thread [%s] finished... (%d).",
+                        getClass().getSimpleName(), Thread.currentThread().getId()));
                 return;
             }
 
