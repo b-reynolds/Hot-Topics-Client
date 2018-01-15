@@ -46,12 +46,16 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
         // Lookup and assign activity controls to their respective variables.
         lblStatus = findViewById(R.id.lblStatus);
         txtUsername = findViewById(R.id.txtUsername);
         btnConnect = findViewById(R.id.btnConnect);
+
+        // Set the title text to be the app name and version number
+        ((TextView)findViewById(R.id.lblTitle)).setText(String.format("%s (v%s)",
+                getString(R.string.app_name), BuildConfig.VERSION_NAME));
 
         // Assign the connect button's OnClick listener.
         btnConnect.setOnClickListener(new BtnConnectOnClickListener());
