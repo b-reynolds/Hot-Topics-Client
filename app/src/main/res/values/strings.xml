@@ -9,7 +9,7 @@
     <!-- Invalid Username Errors -->
     <string name="username_unknown_error">Invalid username.</string>
     <string name="username_taken_error">A user with that name already exists.</string>
-    <string name="username_short_error">Usernames must contain at least 4 characters.</string>
+    <string name="username_short_error">Usernames must contain at least 3 characters.</string>
     <string name="username_long_error">Usernames cannot contain more than 12 characters.</string>
     <string name="username_character_error">Usernames must consist of only alphanumeric characters</string>
 
