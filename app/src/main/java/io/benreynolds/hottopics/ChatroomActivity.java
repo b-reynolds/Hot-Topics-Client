@@ -1,7 +1,7 @@
 package io.benreynolds.hottopics;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,7 +16,7 @@ import io.benreynolds.hottopics.packets.LeaveChatroomResponsePacket;
 import io.benreynolds.hottopics.packets.ReceiveMessagePacket;
 import io.benreynolds.hottopics.packets.SendMessagePacket;
 
-public class ChatroomActivity extends AppCompatActivity {
+public class ChatroomActivity extends Activity {
 
     /** TAG used in Logcat messages outputted by {@code ChatroomActivity}. */
     private static final String TAG = ChatroomActivity.class.getSimpleName();
