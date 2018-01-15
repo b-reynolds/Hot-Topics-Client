@@ -5,13 +5,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import io.benreynolds.hottopics.packets.LeaveChatroomRequestPacket;
 import io.benreynolds.hottopics.packets.LeaveChatroomResponsePacket;
@@ -28,8 +26,8 @@ public class ChatroomActivity extends AppCompatActivity {
             WebSocketCommunicator.getInstance();
 
     /** List of chat messages. */
-    final List<String> mMessages = new ArrayList<>();
-    private ArrayAdapter<String> mMessageListAdapter;
+    final ArrayList<ReceiveMessagePacket> mMessages = new ArrayList<>();
+    private ChatMessageListAdapter mMessageListAdapter;
     private ListView mMessageList;
 
     /** Chat message field. */
@@ -58,7 +56,7 @@ public class ChatroomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chatroom);
 
         // Setup the chatroom message list adapter
-        mMessageListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mMessages);
+        mMessageListAdapter = new ChatMessageListAdapter(this, mMessages);
         mMessageList = findViewById(R.id.lstMessages);
         mMessageList.setAdapter(mMessageListAdapter);
         mMessage = findViewById(R.id.txtMessage);
@@ -145,7 +143,7 @@ public class ChatroomActivity extends AppCompatActivity {
                 }
 
                 // Add the new message to the message list
-                mMessages.add(receiveMessagePacket.getAuthor() + ": " + receiveMessagePacket.getMessage());
+                mMessages.add(receiveMessagePacket);
 
                 runOnUiThread(new Runnable() {
                     @Override
