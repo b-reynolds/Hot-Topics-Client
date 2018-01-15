@@ -26,8 +26,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR =
             WebSocketCommunicator.getInstance();
 
-    /** Thread used to establish connections to the Hot Topics Server
-     *  (see {@code EstablishConnectionTask}). */
+    /** Thread used to establish connections to the Hot Topics Server (see
+     * {@code EstablishConnectionTask}). */
     private Thread tEstablishConnection;
 
     /** Thread used to send a {@code UsernameRequestPacket} to the Hot Topics server and await a
@@ -150,7 +150,6 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             if(!WEB_SOCKET_COMMUNICATOR.isConnected()) {
-                setStatus(getString(R.string.status_connection_failed));
                 Log.w(TAG, "Failed to establish a connection to the Hot Topics server.");
                 Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
                         Thread.currentThread().getId()));
@@ -158,7 +157,6 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             Log.i(TAG, "Connected to the Hot Topics Server server.");
-            setStatus(getString(R.string.status_connected));
             Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
                     Thread.currentThread().getId()));
         }
@@ -211,8 +209,8 @@ public class LoginActivity extends AppCompatActivity {
                 if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
                     setStatus(getString(R.string.status_connection_failed));
                     setActivityState(true);
-                    Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                            Thread.currentThread().getId()));
+                    Log.d(TAG, String.format("Thread [%s] finished... (%d).",
+                            getClass().getSimpleName(), Thread.currentThread().getId()));
                     return;
                 }
 
@@ -243,8 +241,8 @@ public class LoginActivity extends AppCompatActivity {
             if(!((UsernameResponsePacket)requestUsernameTask.getResponse()).getResponse()){
                 setStatus(getString(R.string.username_taken_error));
                 setActivityState(true);
-                Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                        Thread.currentThread().getId()));
+                Log.d(TAG, String.format("Thread [%s] finished... (%d).",
+                        getClass().getSimpleName(), Thread.currentThread().getId()));
                 return;
             }
 
