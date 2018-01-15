@@ -3,6 +3,9 @@
     <string name="btnSendText">Send</string>
     <string name="title_activity_room_list">RoomListActivity</string>
 
+    <!-- General -->
+    <string name="null_string">null</string>
+
     <!-- Invalid Username Errors -->
     <string name="username_unknown_error">Invalid username.</string>
     <string name="username_taken_error">A user with that name already exists.</string>
@@ -17,7 +20,7 @@
     <string name="message_box_button_ok">OK</string>
 
     <!-- Login Status Bar Text -->
-    <string name="status_idle"></string>
+    <string name="status_idle">Ready</string>
     <string name="status_connecting">Connecting…</string>
     <string name="status_connected">Connected.</string>
     <string name="status_connection_failed">Connection failed.</string>

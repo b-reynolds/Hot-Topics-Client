@@ -6,11 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 import io.benreynolds.hottopics.packets.Chatroom;
 import io.benreynolds.hottopics.packets.ChatroomsRequestPacket;
@@ -35,9 +34,9 @@ public class RoomListActivity extends AppCompatActivity {
             WebSocketCommunicator.getInstance();
 
     /** List of available chatrooms. */
-    final List<String> mChatrooms = new ArrayList<>();
-    private ArrayAdapter<String> mRoomListAdapter;
-    private ListView mRoomList;
+    final ArrayList<Chatroom> mChatrooms = new ArrayList<>();
+    private ChatroomListAdapter mChatroomsAdapter;
+    private ListView mChatroomList;
 
     /** Thread used to monitor connection status. */
     private Thread tCheckConnectionStatus;
@@ -54,13 +53,12 @@ public class RoomListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_room_list);
 
         // Setup the chatroom list adapter
-        mRoomListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
-                mChatrooms);
-        mRoomList = findViewById(R.id.lstRooms);
-        mRoomList.setAdapter(mRoomListAdapter);
+        mChatroomsAdapter = new ChatroomListAdapter(this, mChatrooms);
+        mChatroomList = findViewById(R.id.lstRooms);
+        mChatroomList.setAdapter(mChatroomsAdapter);
 
         // Assign the OnClick handler for the chatroom list
-        mRoomList.setOnItemClickListener(new ChatroomListItemClickListener());
+        mChatroomList.setOnItemClickListener(new ChatroomListItemClickListener());
 
         // Begin monitoring the status of the Hot Topics server connection.
         tCheckConnectionStatus = new Thread(new CheckConnectionStatus());
@@ -92,7 +90,7 @@ public class RoomListActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mRoomList.setEnabled(state);
+                mChatroomList.setEnabled(state);
             }
         });
     }
@@ -153,15 +151,13 @@ public class RoomListActivity extends AppCompatActivity {
 
             // Clear and populate the chatroom list.
             mChatrooms.clear();
-            for(Chatroom chatroom : responsePacket.getChatrooms()) {
-                mChatrooms.add(chatroom.getName());
-            }
+            mChatrooms.addAll(Arrays.asList(responsePacket.getChatrooms()));
 
             // Notify the room list adapter that the data has changed and the list needs updating.
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mRoomListAdapter.notifyDataSetChanged();
+                    mChatroomsAdapter.notifyDataSetChanged();
                 }
             });
 
@@ -261,11 +257,11 @@ public class RoomListActivity extends AppCompatActivity {
 
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-            String selectedRoom = (String)mRoomList.getItemAtPosition(position);
-            Log.d(TAG, String.format("Selected Room: \"%s\"", selectedRoom));
+            Chatroom selectedRoom = (Chatroom) mChatroomList.getItemAtPosition(position);
+            Log.d(TAG, String.format("Selected Room: \"%s\"", selectedRoom.getName()));
 
             interruptThread(tJoinChatroom);
-            tJoinChatroom = new Thread(new JoinChatroomTask(selectedRoom));
+            tJoinChatroom = new Thread(new JoinChatroomTask(selectedRoom.getName()));
             tJoinChatroom.start();
         }
 
