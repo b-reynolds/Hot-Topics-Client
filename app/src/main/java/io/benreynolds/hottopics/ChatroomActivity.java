@@ -34,6 +34,8 @@ public class ChatroomActivity extends AppCompatActivity {
     private ListView mMessageList;
 
     private Thread tLeaveChatroom;
+    private Thread tUpdateChatFeed;
+    private Thread tCheckConnectionStatus;
 
     public class UpdateChatFeed implements Runnable {
 
@@ -42,11 +44,11 @@ public class ChatroomActivity extends AppCompatActivity {
             while(!Thread.currentThread().isInterrupted()) {
                 ReceiveMessagePacket receiveMessagePacket = mWebSocketCommunicator.pollPacket(ReceiveMessagePacket.class);
                 if(receiveMessagePacket == null) {
-                    Thread.yield();
                     continue;
                 }
 
                 mMessages.add(receiveMessagePacket.getAuthor() + ": " + receiveMessagePacket.getMessage());
+                Log.i(TAG, "Added Packet message!");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -54,6 +56,7 @@ public class ChatroomActivity extends AppCompatActivity {
                         mMessageList.setSelection(mMessageList.getCount() - 1);
                     }
                 });
+
             }
         }
 
@@ -62,7 +65,10 @@ public class ChatroomActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(tLeaveChatroom != null && tLeaveChatroom.isAlive()) {
-            super.onBackPressed();
+            tUpdateChatFeed.interrupt();
+            tCheckConnectionStatus.interrupt();
+            Intent mainActivity = new Intent(ChatroomActivity.this, RoomListActivity.class);
+            startActivity(mainActivity);
             return;
         }
 
@@ -75,14 +81,14 @@ public class ChatroomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatroom);
 
-        mMessageListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mMessages);
+        mMessageListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mMessages);
         mMessageList = findViewById(R.id.lstMessages);
         mMessageList.setAdapter(mMessageListAdapter);
 
         mMessage = findViewById(R.id.txtMessage);
 
         TextView lblTitle = findViewById(R.id.lblTitle);
-        lblTitle.setText(getIntent().getStringExtra("ROOM_NAME"));
+        lblTitle.setText(getIntent().getStringExtra(RoomListActivity.ROOM_NAME_EXTRA));
 
         mBtnSend = findViewById(R.id.btnSend);
         mBtnSend.setOnClickListener(new View.OnClickListener() {
@@ -95,8 +101,11 @@ public class ChatroomActivity extends AppCompatActivity {
             }
         });
 
-        new Thread(new CheckConnectionStatus()).start();
-       new Thread(new UpdateChatFeed()).start();
+        tCheckConnectionStatus = new Thread(new CheckConnectionStatus());
+        tCheckConnectionStatus.start();
+
+        tUpdateChatFeed = new Thread(new UpdateChatFeed());
+        tUpdateChatFeed.start();
     }
 
     public class LeaveChatroomTask implements Runnable {
@@ -136,7 +145,6 @@ public class ChatroomActivity extends AppCompatActivity {
                 if (!mWebSocketCommunicator.isConnected()) {
                     Log.w(TAG, "Connection Lost Unexpectedly.");
                     Intent mainActivity = new Intent(ChatroomActivity.this, LoginActivity.class);
-                    mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainActivity);
                     break;
                 }

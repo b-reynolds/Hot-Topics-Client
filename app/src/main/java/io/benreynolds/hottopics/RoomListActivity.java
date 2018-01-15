@@ -24,6 +24,9 @@ import io.benreynolds.hottopics.packets.JoinChatroomResponsePacket;
  */
 public class RoomListActivity extends AppCompatActivity {
 
+    /** String key for the name of the chatroom sent to {@code ChatroomActivity} */
+    public static final String ROOM_NAME_EXTRA = "ROOM_NAME";
+
     /** TAG used in Logcat messages outputted by {@code LoginActivity}. */
     private static final String TAG = RoomListActivity.class.getSimpleName();
 
@@ -168,6 +171,11 @@ public class RoomListActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * {@code JoinChatroomTask} sends a {@code JoinChatroomRequestPacket} to the Hot Topics server
+     * and awaits a {@code JoinChatroomResponsePacket} in return. Transitions to
+     * {@code ChatroomActivity} if the response yields true.
+     */
     public class JoinChatroomTask implements Runnable {
 
         private final String mChatroomName;
@@ -209,7 +217,7 @@ public class RoomListActivity extends AppCompatActivity {
 
             Intent chatRoom = new Intent(RoomListActivity.this,
                     ChatroomActivity.class);
-            chatRoom.putExtra("ROOM_NAME", mChatroomName);
+            chatRoom.putExtra(ROOM_NAME_EXTRA, mChatroomName);
             startActivity(chatRoom);
             Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
                     Thread.currentThread().getId()));
