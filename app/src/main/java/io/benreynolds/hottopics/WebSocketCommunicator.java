@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -26,7 +25,7 @@ import okhttp3.WebSocketListener;
  */
 public class WebSocketCommunicator extends WebSocketListener {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String TAG = LoginActivity.class.getSimpleName();
 
     /** Indicates a normal closure, meaning that the purpose for which the connection was
      *  established has been fulfilled. */
@@ -124,7 +123,7 @@ public class WebSocketCommunicator extends WebSocketListener {
                 }
 
                 mReceivedPackets.add(convertedPacket);
-                Log.i(TAG, String.format("Packet Received: \"%s\".", mReceivedPackets.peek().toString()));
+                Log.i(TAG, String.format("Packet Received: \"%s\".", convertedPacket.toString()));
                 break;
             }
         }
@@ -178,8 +177,12 @@ public class WebSocketCommunicator extends WebSocketListener {
      * @param packet {@code Packet} to send.
      */
     public void sendPacket(final Packet packet) {
+        if(packet == null) {
+            Log.w(TAG, "Attempted to send a null Packet.");
+            return;
+        }
         if(mWebSocket != null && mConnected) {
-            Log.d(TAG, String.format("Sending Packet: \"%s\".", packet.toString()));
+            //Log.d(TAG, String.format("Sending Packet: \"%s\".", packet.toString()));
             mWebSocket.send(packet.toString());
         }
     }
