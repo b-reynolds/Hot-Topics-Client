@@ -12,6 +12,10 @@ public class Chatroom {
     @SerializedName("name")
     private String mName;
 
+    /** Amount of users in the Chatroom **/
+    @SerializedName("size")
+    private Integer mSize;
+
     /**
      * @param name Name of the {@code Chatroom}.
      */
@@ -25,5 +29,10 @@ public class Chatroom {
     public String getName() {
         return mName;
     }
+
+    /** Returns the amount of users in the {@code Chatroom}.
+     * @return Amount of users in the {@code Chatroom}.
+     */
+    public Integer getSize() { return mSize; }
 
 }
