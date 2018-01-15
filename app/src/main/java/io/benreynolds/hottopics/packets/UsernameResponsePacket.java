@@ -6,8 +6,7 @@ package io.benreynolds.hottopics.packets;
 public class UsernameResponsePacket extends BooleanResponsePacket {
 
     /** Attempts to store a the '{@code UsernameResponsePacket}'s ID (as determined by the {@code PacketIdentifier}). */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(UsernameResponsePacket.class,
-            null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(UsernameResponsePacket.class);
 
     /**
      * @param response Server's response.

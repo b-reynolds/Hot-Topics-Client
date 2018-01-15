@@ -10,7 +10,7 @@ public class SendMessagePacket extends Packet {
     /** Attempts to store a static reference to the '{@code SendMessagePacket}'s ID (as determined by the
      * {@code PacketIdentifier}).
      */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(SendMessagePacket.class, null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(SendMessagePacket.class);
 
     /** Client's message. */
     @SerializedName("message")

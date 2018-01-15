@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName;
 public class ChatroomsResponsePacket extends Packet {
 
     /** Attempts to store the '{@code ChatroomsResponsePacket}'s ID (as determined by the {@code PacketIdentifier}). */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(ChatroomsResponsePacket.class, null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(ChatroomsResponsePacket.class);
 
     /**
      * '{@code Chatroom}'s that are available for clients to join.

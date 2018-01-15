@@ -4,10 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="io.benreynolds.hottopics.MainActivity">
+    tools:context="io.benreynolds.hottopics.LoginActivity">
 
     <EditText
         android:id="@+id/txtUsername"
+        style="@android:style/Widget.Material.EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -28,19 +29,21 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Username:"
-        android:textSize="18sp"
+        android:textAppearance="@android:style/TextAppearance.Material.Subhead"
         app:layout_constraintBottom_toTopOf="@+id/btnConnect"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lblTitle" />
 
     <Button
         android:id="@+id/btnConnect"
+        style="@android:style/Widget.Material.Button"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Connect"
+        android:textAppearance="@android:style/TextAppearance.Material.Button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtUsername" />
@@ -54,9 +57,7 @@
         android:layout_marginTop="8dp"
         android:text="Login"
         android:textAlignment="center"
-        android:textAppearance="@android:style/TextAppearance.Large"
-        android:textSize="36sp"
-        android:textStyle="bold"
+        android:textAppearance="@android:style/TextAppearance.Material.Headline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"

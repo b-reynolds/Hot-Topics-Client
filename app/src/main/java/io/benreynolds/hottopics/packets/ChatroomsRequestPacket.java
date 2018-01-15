@@ -6,7 +6,7 @@ package io.benreynolds.hottopics.packets;
 public class ChatroomsRequestPacket extends Packet {
 
     /** Attempts to store the '{@code ChatroomsRequestPacket}'s ID (as determined by the {@code PacketIdentifier}). */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(ChatroomsRequestPacket.class, null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(ChatroomsRequestPacket.class);
 
     public ChatroomsRequestPacket() {
         mId = ID;

@@ -6,7 +6,7 @@ package io.benreynolds.hottopics.packets;
 public class LeaveChatroomResponsePacket extends BooleanResponsePacket {
 
     /** Attempts to store the '{@code LeaveChatroomResponsePacket}'s ID (as determined by the {@code PacketIdentifier}). */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(LeaveChatroomResponsePacket.class, null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(LeaveChatroomResponsePacket.class);
 
     /**
      * @param response Server's response.

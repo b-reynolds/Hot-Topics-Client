@@ -6,8 +6,7 @@ package io.benreynolds.hottopics.packets;
 public class LeaveChatroomRequestPacket extends Packet {
 
     /** Attempts to store the '{@code LeaveChatroomRequestPacket}'s ID (as determined by the {@code PacketIdentifier}). */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(LeaveChatroomRequestPacket.class,
-            null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(LeaveChatroomRequestPacket.class);
 
     public LeaveChatroomRequestPacket() {
         mId = ID;
