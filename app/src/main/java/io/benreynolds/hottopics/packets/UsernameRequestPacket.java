@@ -8,8 +8,11 @@ import com.google.gson.annotations.SerializedName;
 public class UsernameRequestPacket extends Packet {
 
     /** Attempts to store a the '{@code UsernameRequestPacket}'s ID (as determined by the {@code PacketIdentifier}). */
-    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(UsernameRequestPacket.class,
-            null);
+    public static final Integer ID = PacketIdentifier.PACKET_IDS.get(UsernameRequestPacket.class);
+//
+//
+//    public static final Integer ID = PacketIdentifier.PACKET_IDS.getOrDefault(UsernameRequestPacket.class,
+//            null);
 
     /** Regular expression used to validate usernames (must consist of alphanumeric characters). */
     public static final String INVALID_CHARACTER_REGEX = "^.*[^a-zA-Z0-9 ].*$";
