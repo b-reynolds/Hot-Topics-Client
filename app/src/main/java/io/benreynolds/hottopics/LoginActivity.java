@@ -1,9 +1,9 @@
 package io.benreynolds.hottopics;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -242,7 +242,8 @@ public class LoginActivity extends Activity {
 
             // If the server rejected the username, update its status bar to reflect this and
             // re-enable the form before killing the thread.
-            if(!((UsernameResponsePacket)requestUsernameTask.getResponse()).getResponse()){
+            UsernameResponsePacket responsePacket = (UsernameResponsePacket)requestUsernameTask.getResponse();
+            if(responsePacket == null || !responsePacket.getResponse()) {
                 setStatus(getString(R.string.username_taken_error));
                 setActivityState(true);
                 Log.d(TAG, String.format("Thread [%s] finished... (%d).",
