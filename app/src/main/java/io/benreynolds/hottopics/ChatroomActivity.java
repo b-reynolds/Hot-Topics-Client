@@ -1,6 +1,5 @@
 package io.benreynolds.hottopics;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,7 +15,7 @@ import io.benreynolds.hottopics.packets.LeaveChatroomResponsePacket;
 import io.benreynolds.hottopics.packets.ReceiveMessagePacket;
 import io.benreynolds.hottopics.packets.SendMessagePacket;
 
-public class ChatroomActivity extends Activity {
+public class ChatroomActivity extends ConnectedActivity {
 
     /** TAG used in Logcat messages outputted by {@code ChatroomActivity}. */
     private static final String TAG = ChatroomActivity.class.getSimpleName();
@@ -38,9 +37,6 @@ public class ChatroomActivity extends Activity {
 
     /** Thread used to update the chat message list with new messages. */
     private Thread tUpdateChatFeed;
-
-    /** Thread used to monitor connection status. */
-    private Thread tCheckConnectionStatus;
 
     @Override
     public void onBackPressed() {
@@ -67,10 +63,6 @@ public class ChatroomActivity extends Activity {
 
         // Assign the send button's OnClick listener.
         findViewById(R.id.btnSend).setOnClickListener(new BtnSendOnClickListener());
-
-        // Begin monitoring the status of the Hot Topics server connection.
-        tCheckConnectionStatus = new Thread(new CheckConnectionStatus());
-        tCheckConnectionStatus.start();
 
         // Begin checking for new messages and updating the chat message feed.
         tUpdateChatFeed = new Thread(new UpdateChatMessagesTask());
@@ -117,7 +109,6 @@ public class ChatroomActivity extends Activity {
             }
 
             interruptThread(tUpdateChatFeed);
-            interruptThread(tCheckConnectionStatus);
 
             Intent mainActivity = new Intent(ChatroomActivity.this, RoomListActivity.class);
             startActivity(mainActivity);
@@ -154,29 +145,6 @@ public class ChatroomActivity extends Activity {
                         mMessageList.setSelection(mMessageList.getCount() - 1);
                     }
                 });
-            }
-        }
-
-    }
-
-    /**
-     * {@code CheckConnectionStatus} checks whether the {@code WebSocketCommunicator} has an active
-     * connection to the server. If no active connection is found, the application transitions to
-     * {@code LoginActivity}.
-     */
-    public class CheckConnectionStatus implements Runnable {
-
-        @Override
-        public void run() {
-            while(!Thread.currentThread().isInterrupted()) {
-                if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
-                    Log.w(TAG, "Connection Lost Unexpectedly.");
-                    Intent mainActivity = new Intent(ChatroomActivity.this,
-                            LoginActivity.class);
-                    startActivity(mainActivity);
-                    break;
-                }
-                Thread.yield();
             }
         }
 
