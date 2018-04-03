@@ -1,6 +1,5 @@
 package io.benreynolds.hottopics;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,7 +20,7 @@ import io.benreynolds.hottopics.packets.JoinChatroomResponsePacket;
  * {@code RoomListActivity} handles the retrieval of and connection to rooms from the Hot Topics
  * server. Transitions to {@code ChatroomActivity} and {@code LoginActivity}.
  */
-public class RoomListActivity extends Activity {
+public class RoomListActivity extends ConnectedActivity {
 
     /** String key for the name of the chatroom sent to {@code ChatroomActivity} */
     public static final String ROOM_NAME_EXTRA = "ROOM_NAME";
@@ -37,9 +36,6 @@ public class RoomListActivity extends Activity {
     final ArrayList<Chatroom> mChatrooms = new ArrayList<>();
     private ChatroomListAdapter mChatroomsAdapter;
     private ListView mChatroomList;
-
-    /** Thread used to monitor connection status. */
-    private Thread tCheckConnectionStatus;
 
     /** Thread used to populate the chatroom list. */
     private Thread tRetrieveChatrooms;
@@ -60,10 +56,6 @@ public class RoomListActivity extends Activity {
         // Assign the OnClick handler for the chatroom list
         mChatroomList.setOnItemClickListener(new ChatroomListItemClickListener());
 
-        // Begin monitoring the status of the Hot Topics server connection.
-        tCheckConnectionStatus = new Thread(new CheckConnectionStatus());
-        tCheckConnectionStatus.start();
-
         // Request a list of chatrooms from the Hot Topics server.
         tRetrieveChatrooms = new Thread(new RetrieveChatroomsTask());
         tRetrieveChatrooms.start();
@@ -72,7 +64,6 @@ public class RoomListActivity extends Activity {
     @Override
     public void onBackPressed() {
         // Interrupt all active threads.
-        interruptThread(tCheckConnectionStatus);
         interruptThread(tRetrieveChatrooms);
         interruptThread(tJoinChatroom);
 
@@ -210,40 +201,12 @@ public class RoomListActivity extends Activity {
                 return;
             }
 
-            interruptThread(tCheckConnectionStatus);
             interruptThread(tRetrieveChatrooms);
 
             Intent chatRoom = new Intent(RoomListActivity.this,
                     ChatroomActivity.class);
             chatRoom.putExtra(ROOM_NAME_EXTRA, mChatroomName);
             startActivity(chatRoom);
-            Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-        }
-
-    }
-
-    /**
-     * {@code CheckConnectionStatus} checks whether the {@code WebSocketCommunicator} has an active
-     * connection to the Hot Topics server. If no such connection is found, the application
-     * transitions back to {@code LoginActivity}.
-     */
-    public class CheckConnectionStatus implements Runnable {
-
-        @Override
-        public void run() {
-            Log.d(TAG, String.format("Thread [%s] started... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-
-            while(!Thread.currentThread().isInterrupted()) {
-                if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
-                    Log.e(TAG, "Error: Connection lost.");
-                    Intent mainActivity = new Intent(RoomListActivity.this, LoginActivity.class);
-                    startActivity(mainActivity);
-                    break;
-                }
-            }
-
             Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
                     Thread.currentThread().getId()));
         }
