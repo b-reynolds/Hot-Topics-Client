@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -50,6 +52,16 @@ public class WebSocketCommunicator extends WebSocketListener {
 
     /** {@code true} if the {@code WebSocketCommunicator} has a connection to the server. */
     private boolean mConnected;
+
+    private List<PacketObserver> mObservers = new ArrayList<>();
+
+    public void addObserver(PacketObserver packetObserver) {
+        mObservers.add(packetObserver);
+    }
+
+    public void removeObserver(PacketObserver packetObserver) {
+        mObservers.remove(packetObserver);
+    }
 
     /**
      * Connects the {@code WebSocketCommunicator} to the server.
@@ -121,6 +133,12 @@ public class WebSocketCommunicator extends WebSocketListener {
                 if(!convertedPacket.isValid()) {
                     Log.w(TAG, String.format("Invalid Packet Received: \"%s\".", message));
                     break;
+                }
+
+                for(PacketObserver packetObserver : mObservers) {
+                    if(packetObserver.packetType() == convertedPacket.getClass()) {
+                        packetObserver.update(convertedPacket);
+                    }
                 }
 
                 mReceivedPackets.add(convertedPacket);
