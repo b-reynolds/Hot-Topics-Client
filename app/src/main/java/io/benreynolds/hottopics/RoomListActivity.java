@@ -2,7 +2,6 @@ package io.benreynolds.hottopics;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -25,23 +24,19 @@ public class RoomListActivity extends ConnectedActivity {
     /** String key for the name of the chatroom sent to {@code ChatroomActivity} */
     public static final String ROOM_NAME_EXTRA = "ROOM_NAME";
 
-    /** TAG used in Logcat messages outputted by {@code LoginActivity}. */
-    private static final String TAG = RoomListActivity.class.getSimpleName();
-
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
-    private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR =
-            WebSocketCommunicator.getInstance();
+    private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
 
     /** List of available chatrooms. */
     final ArrayList<Chatroom> mChatrooms = new ArrayList<>();
     private ChatroomListAdapter mChatroomsAdapter;
     private ListView mChatroomList;
 
-    /** Thread used to populate the chatroom list. */
-    private Thread tRetrieveChatrooms;
+    /** Observer used to handle the receipt of available Chatrooms */
+    private ChatroomsResponsePacketHandler chatroomsResponsePacketHandler;
 
-    /** Thread used to join a chatroom. */
-    private Thread tJoinChatroom;
+    /** Observer used to handle responses to 'JoinChatroomRequestPacket's */
+    private JoinChatroomResponsePacketHandler joinChatroomResponsePacketHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,23 +48,30 @@ public class RoomListActivity extends ConnectedActivity {
         mChatroomList = findViewById(R.id.lstRooms);
         mChatroomList.setAdapter(mChatroomsAdapter);
 
-        // Assign the OnClick handler for the chatroom list
+        // Assign the OnClick handler for handling room selection
         mChatroomList.setOnItemClickListener(new ChatroomListItemClickListener());
 
-        // Request a list of chatrooms from the Hot Topics server.
-        tRetrieveChatrooms = new Thread(new RetrieveChatroomsTask());
-        tRetrieveChatrooms.start();
+        // Instantiate and attach the observer that handles chatroom list responses
+        chatroomsResponsePacketHandler = new ChatroomsResponsePacketHandler();
+        WEB_SOCKET_COMMUNICATOR.addObserver(chatroomsResponsePacketHandler);
+
+        // Send a ChatRoomsRequestPacket to the server
+        WEB_SOCKET_COMMUNICATOR.sendPacket(new ChatroomsRequestPacket());
     }
 
     @Override
     public void onBackPressed() {
-        // Interrupt all active threads.
-        interruptThread(tRetrieveChatrooms);
-        interruptThread(tJoinChatroom);
+        // Remove all observers attached within this activity from the WebSocketCommunicator
+        if(chatroomsResponsePacketHandler != null) {
+            WEB_SOCKET_COMMUNICATOR.removeObserver(chatroomsResponsePacketHandler);
+        }
+        if(joinChatroomResponsePacketHandler != null) {
+            WEB_SOCKET_COMMUNICATOR.removeObserver(joinChatroomResponsePacketHandler);
+        }
 
-        // Transition to the LoginActivity.
-        Intent loginActivity = new Intent(RoomListActivity.this, LoginActivity.class);
-        startActivity(loginActivity);
+        // TODO: Prompt the user to confirm/deny that they would like to disconnect from the server.
+        // Disconnect from the Hot Topics server (In turn returning to the LoginActivity (see ConnectedActivity)
+        WEB_SOCKET_COMMUNICATOR.disconnect();
     }
 
     /**
@@ -87,133 +89,6 @@ public class RoomListActivity extends ConnectedActivity {
     }
 
     /**
-     * Ask the specified thread to stop execution.
-     * @param thread thread.
-     */
-    private void interruptThread(final Thread thread) {
-        if(thread != null) {
-            thread.interrupt();
-        }
-    }
-
-    /**
-     * {@code RetrieveChatroomsTask} sends a {@code ChatroomsRequestPacket} to the Hot Topics server
-     * and awaits a {@code ChatroomsResponsePacket} in return, populating the chatroom list with its
-     * contents.
-     */
-    public class RetrieveChatroomsTask implements Runnable {
-
-        @Override
-        public void run() {
-            Log.d(TAG, String.format("Thread [%s] started... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-
-            // Create a RequestResponseTask for sending/awaiting ChatroomRequest/Response 'Packet's.
-            RequestResponseTask<ChatroomsRequestPacket> requestResponseTask =
-                    new RequestResponseTask<>(new ChatroomsRequestPacket(),
-                            ChatroomsResponsePacket.class);
-
-            // Create a Thread for the RequestResponseTask and run it.
-            Thread tRequestResponse = new Thread(requestResponseTask);
-            tRequestResponse.start();
-
-            // Wait for the RequestResponseTask to complete.
-            while (tRequestResponse.isAlive()) {
-                Thread.yield();
-            }
-
-            // Cast the response packet into a ChatroomsResponsePacket
-            ChatroomsResponsePacket responsePacket = (ChatroomsResponsePacket)
-                    requestResponseTask.getResponse();
-
-            // If no response was received, disconnect and return to the LoginActivity.
-            if(responsePacket == null) {
-                Log.e(TAG,"Error: ChatroomsResponsePacket was not received in time.");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        onBackPressed();
-                    }
-                });
-                Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                        Thread.currentThread().getId()));
-                return;
-            }
-
-            // Clear and populate the chatroom list.
-            mChatrooms.clear();
-            mChatrooms.addAll(Arrays.asList(responsePacket.getChatrooms()));
-
-            // Notify the room list adapter that the data has changed and the list needs updating.
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mChatroomsAdapter.notifyDataSetChanged();
-                }
-            });
-
-            Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-        }
-
-    }
-
-    /**
-     * {@code JoinChatroomTask} sends a {@code JoinChatroomRequestPacket} to the Hot Topics server
-     * and awaits a {@code JoinChatroomResponsePacket} in return. Transitions to
-     * {@code ChatroomActivity} if the response yields true.
-     */
-    public class JoinChatroomTask implements Runnable {
-
-        private final String mChatroomName;
-
-        JoinChatroomTask(final String chatroomName) {
-            mChatroomName = chatroomName;
-        }
-
-        @Override
-        public void run() {
-            Log.d(TAG, String.format("Thread [%s] started... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-
-            // Disable the UI.
-            setActivityState(false);
-
-            RequestResponseTask<JoinChatroomRequestPacket> requestResponseTask =
-                    new RequestResponseTask<>(new JoinChatroomRequestPacket(mChatroomName),
-                            JoinChatroomResponsePacket.class);
-
-            Thread tRequestResponse = new Thread(requestResponseTask);
-            tRequestResponse.start();
-
-            while (tRequestResponse.isAlive()) {
-                Thread.yield();
-            }
-
-            // Enable the UI.
-            setActivityState(true);
-
-            JoinChatroomResponsePacket responsePacket = (JoinChatroomResponsePacket)
-                    requestResponseTask.getResponse();
-            if(responsePacket == null || !responsePacket.getResponse()) {
-                Log.d(TAG, String.format("Thread [%s] finished... (%d).",
-                        getClass().getSimpleName(), Thread.currentThread().getId()));
-                return;
-            }
-
-            interruptThread(tRetrieveChatrooms);
-
-            Intent chatRoom = new Intent(RoomListActivity.this,
-                    ChatroomActivity.class);
-            chatRoom.putExtra(ROOM_NAME_EXTRA, mChatroomName);
-            startActivity(chatRoom);
-            Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-        }
-
-    }
-
-    /**
      * {@code ChatroomListItemClickListener}'s {@code onItemClick} method is executed when an item
      * from the chatroom list is pressed. It sends a request to the Hot Topics server to join the
      * selected room.
@@ -222,12 +97,89 @@ public class RoomListActivity extends ConnectedActivity {
 
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-            Chatroom selectedRoom = (Chatroom) mChatroomList.getItemAtPosition(position);
-            Log.d(TAG, String.format("Selected Room: \"%s\"", selectedRoom.getName()));
+            // Disable the UI controls
+            setActivityState(false);
 
-            interruptThread(tJoinChatroom);
-            tJoinChatroom = new Thread(new JoinChatroomTask(selectedRoom.getName()));
-            tJoinChatroom.start();
+            // Get the name of the selected room from the chatroom list
+            Chatroom selectedRoom = (Chatroom) mChatroomList.getItemAtPosition(position);
+
+            // Instantiate and attach a JoinChatroomResponsePacketHandler to the WebSocketCommunicator to handle ChatroomRequestPacket responses
+            joinChatroomResponsePacketHandler = new JoinChatroomResponsePacketHandler(selectedRoom.getName());
+            WEB_SOCKET_COMMUNICATOR.addObserver(joinChatroomResponsePacketHandler);
+
+            // Send a JoinChatroomRequestPacket to the Hot Topics server containing the name of the selected chatroom
+            WEB_SOCKET_COMMUNICATOR.sendPacket(new JoinChatroomRequestPacket(selectedRoom.getName()));
+        }
+
+    }
+
+    /**
+     * {@code JoinChatroomResponsePacketHandler} is responsible for processing '{@code JoinChatroomResponse}'s.
+     */
+    private class JoinChatroomResponsePacketHandler implements PacketObserver<JoinChatroomResponsePacket> {
+
+        /** Name of the chatroom the user wants to join */
+        private final String mChatroomName;
+
+        /**
+         * @param chatroomName Name of the chatroom the user wants to join
+         */
+        JoinChatroomResponsePacketHandler(final String chatroomName) {
+            mChatroomName = chatroomName;
+        }
+
+        @Override
+        public void update(JoinChatroomResponsePacket packet) {
+            // Remove this observer from the WebSocketCommunicator.
+            WEB_SOCKET_COMMUNICATOR.removeObserver(this);
+
+            // TODO: Improve handling of negative responses to 'JoinChatroomRequestPacket's (Are they even required?)
+            if(!packet.getResponse()) {
+                // Re-enable the UI controls
+                setActivityState(true);
+                return;
+            }
+
+            // Prepare transition to ChatroomActivity, include an extra containing the chatroom's name so that it can be used to display above the message feed.
+            Intent chatRoom = new Intent(RoomListActivity.this, ChatroomActivity.class);
+            chatRoom.putExtra(ROOM_NAME_EXTRA, mChatroomName);
+
+            // Transition to the ChatroomActivity
+            startActivity(chatRoom);
+        }
+
+        @Override
+        public Class<JoinChatroomResponsePacket> packetType() {
+            return JoinChatroomResponsePacket.class;
+        }
+
+    }
+
+    /**
+     * {@code ChatroomsResponsePacketHandler} is responsible for processing '{@code ChatroomsResponsePacket}'s.
+     */
+    private class ChatroomsResponsePacketHandler implements PacketObserver<ChatroomsResponsePacket> {
+
+        @Override
+        public void update(ChatroomsResponsePacket packet) {
+            // Remove all existing chatrooms from the chatroom list
+            mChatrooms.clear();
+
+            // Populate the chatroom list with the newly received data
+            mChatrooms.addAll(Arrays.asList(packet.getChatrooms()));
+
+            // Notify the room list adapter that the underlying data has changed and the list requires updating
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mChatroomsAdapter.notifyDataSetChanged();
+                }
+            });
+        }
+
+        @Override
+        public Class<ChatroomsResponsePacket> packetType() {
+            return ChatroomsResponsePacket.class;
         }
 
     }
