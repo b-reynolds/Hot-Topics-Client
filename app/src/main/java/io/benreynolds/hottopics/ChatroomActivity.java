@@ -2,7 +2,6 @@ package io.benreynolds.hottopics;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -21,8 +20,7 @@ public class ChatroomActivity extends ConnectedActivity {
     private static final String TAG = ChatroomActivity.class.getSimpleName();
 
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
-    private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR =
-            WebSocketCommunicator.getInstance();
+    private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
 
     /** List of chat messages. */
     final ArrayList<ReceiveMessagePacket> mMessages = new ArrayList<>();
@@ -32,18 +30,9 @@ public class ChatroomActivity extends ConnectedActivity {
     /** Chat message field. */
     private EditText mMessage;
 
-    /** Thread used to leave the current chatroom. */
-    private Thread tLeaveChatroom;
-
-    /** Thread used to update the chat message list with new messages. */
-    private Thread tUpdateChatFeed;
-
     @Override
     public void onBackPressed() {
-        if(tLeaveChatroom == null || !tLeaveChatroom.isAlive()) {
-            tLeaveChatroom = new Thread(new LeaveChatroomTask());
-            tLeaveChatroom.start();
-        }
+        WEB_SOCKET_COMMUNICATOR.sendPacket(new LeaveChatroomRequestPacket());
     }
 
     @Override
@@ -64,90 +53,12 @@ public class ChatroomActivity extends ConnectedActivity {
         // Assign the send button's OnClick listener.
         findViewById(R.id.btnSend).setOnClickListener(new BtnSendOnClickListener());
 
-        // Begin checking for new messages and updating the chat message feed.
-        tUpdateChatFeed = new Thread(new UpdateChatMessagesTask());
-        tUpdateChatFeed.start();
-    }
+        // Instantiate and add observers to the WebSocketCommunicator that handle leaving the chatroom and receiving messages.
+        LeaveChatroomResponseObserver leaveChatroomResponseObserver = new LeaveChatroomResponseObserver();
+        WEB_SOCKET_COMMUNICATOR.addObserver(leaveChatroomResponseObserver);
 
-    /**
-     * Ask the specified thread to stop execution.
-     * @param thread thread.
-     */
-    private void interruptThread(final Thread thread) {
-        if(thread != null) {
-            thread.interrupt();
-        }
-    }
-
-    /**
-     * {@code LeaveChatroomTask} sends a {@code LeaveChatroomRequestPacket} to the Hot Topics server
-     * and awaits a {@code LeaveChatroomResponsePacket} in return. Transitions to
-     * {@code RoomListActivity} if the response yields true.
-     */
-    public class LeaveChatroomTask implements Runnable {
-
-        @Override
-        public void run() {
-            Log.d(TAG, String.format("Thread [%s] started... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-
-            RequestResponseTask<LeaveChatroomRequestPacket> leaveChatroomTask =
-                    new RequestResponseTask<>(new LeaveChatroomRequestPacket(),
-                            LeaveChatroomResponsePacket.class);
-            Thread tLeaveChatroomRequest = new Thread(leaveChatroomTask);
-            tLeaveChatroomRequest.start();
-
-            while(tLeaveChatroomRequest.isAlive()) {
-                Thread.yield();
-            }
-
-            if(!((LeaveChatroomResponsePacket)leaveChatroomTask.getResponse()).getResponse()) {
-                WEB_SOCKET_COMMUNICATOR.disconnect();
-                Log.d(TAG, String.format("Thread [%s] finished... (%d).",
-                        getClass().getSimpleName(), Thread.currentThread().getId()));
-                return;
-            }
-
-            interruptThread(tUpdateChatFeed);
-
-            Intent mainActivity = new Intent(ChatroomActivity.this, RoomListActivity.class);
-            startActivity(mainActivity);
-
-            Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),
-                    Thread.currentThread().getId()));
-        }
-
-    }
-
-    /**
-     * {@code UpdateChatMessagesTask} polls {@code WebSocketCommunicator} for new messages (
-     * '{@code ReceiveMessagePacket}'s) and adds them to the message list.
-     */
-    public class UpdateChatMessagesTask implements Runnable {
-
-        @Override
-        public void run() {
-            while(!Thread.currentThread().isInterrupted()) {
-                ReceiveMessagePacket receiveMessagePacket = WEB_SOCKET_COMMUNICATOR.pollPacket(ReceiveMessagePacket.class);
-                if(receiveMessagePacket == null) {
-                    continue;
-                }
-
-                // Add the new message to the message list
-                mMessages.add(receiveMessagePacket);
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Notify the message list adapter that new data has been added.
-                        mMessageListAdapter.notifyDataSetChanged();
-                        // Scroll to the latest entry.
-                        mMessageList.setSelection(mMessageList.getCount() - 1);
-                    }
-                });
-            }
-        }
-
+        ReceiveMessageObserver receiveMessageObserver = new ReceiveMessageObserver();
+        WEB_SOCKET_COMMUNICATOR.addObserver(receiveMessageObserver);
     }
 
     /**
@@ -165,6 +76,60 @@ public class ChatroomActivity extends ConnectedActivity {
             mMessage.setText("");
             // Send the Packet.
             WEB_SOCKET_COMMUNICATOR.sendPacket(sendMessagePacket);
+        }
+
+    }
+
+    /**
+     * {@code LeaveChatroomResponseObserver} is responsible for handling responses to '{@code LeaveChatroomRequestPacket}'s.
+     */
+    private class LeaveChatroomResponseObserver implements PacketObserver<LeaveChatroomResponsePacket> {
+
+        @Override
+        public void update(LeaveChatroomResponsePacket packet) {
+            // If the response received contained a 'false' value, an unknown error has occurred and the connection to
+            // the Hot Topics server is broken.
+            if(!packet.getResponse()) {
+                WEB_SOCKET_COMMUNICATOR.disconnect();
+                return;
+            }
+
+            // Take the user back to the RoomList activity.
+            Intent roomListActivity = new Intent(ChatroomActivity.this, RoomListActivity.class);
+            startActivity(roomListActivity);
+        }
+
+        @Override
+        public Class<LeaveChatroomResponsePacket> packetType() {
+            return LeaveChatroomResponsePacket.class;
+        }
+
+    }
+
+    /**
+     * {@code ReceiveMessageObserver} is responsible for processing '{@code ReceiveMessagePacket}'s.
+     */
+    private class ReceiveMessageObserver implements PacketObserver<ReceiveMessagePacket> {
+
+        @Override
+        public void update(ReceiveMessagePacket packet) {
+            // Add the newly received message to the message list.
+            mMessages.add(packet);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Notify the message list adapter that a new message has been added.
+                    mMessageListAdapter.notifyDataSetChanged();
+                    // Scroll to message list the latest entry.
+                    mMessageList.setSelection(mMessageList.getCount() - 1);
+                }
+            });
+        }
+
+        @Override
+        public Class<ReceiveMessagePacket> packetType() {
+            return ReceiveMessagePacket.class;
         }
 
     }

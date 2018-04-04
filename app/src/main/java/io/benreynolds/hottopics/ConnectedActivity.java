@@ -60,6 +60,8 @@ public class ConnectedActivity extends Activity {
 
         @Override
         public void run() {
+            // TODO: Remove all observers from the WebSocketCommunicator?
+
             Log.d(TAG, String.format("[%s:%s] Started...", getClass().getSimpleName(),
                     Thread.currentThread().getId()));
 
