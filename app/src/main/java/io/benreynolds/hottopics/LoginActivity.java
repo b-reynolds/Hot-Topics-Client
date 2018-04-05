@@ -3,12 +3,18 @@ package io.benreynolds.hottopics;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.util.Objects;
 
 import io.benreynolds.hottopics.packets.UsernameRequestPacket;
 import io.benreynolds.hottopics.packets.UsernameResponsePacket;
@@ -50,6 +56,7 @@ public class LoginActivity extends Activity {
 
         // Lookup and assign activity controls to their respective variables.
         lblStatus = findViewById(R.id.lblStatus);
+
         txtUsername = findViewById(R.id.txtUsername);
         btnConnect = findViewById(R.id.btnConnect);
 
@@ -67,44 +74,74 @@ public class LoginActivity extends Activity {
         }
 
         // Set the default activity status.
-        setStatus(getString(R.string.status_idle));
         setActivityState(true);
+
+        txtUsername.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            private void setConnectButtonState(boolean enabled) {
+                btnConnect.setEnabled(enabled);
+                btnConnect.setBackgroundColor(enabled ? getColor(R.color.hot_topics_blue) : getColor(R.color.hot_topics_blue_disabled));
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                // Store the user's desired username, disregarding any trailing or leading spaces.
+                String requestedUsername = txtUsername.getText().toString().trim();
+
+                if(requestedUsername.isEmpty()) {
+                    lblStatus.setVisibility(TextView.INVISIBLE);
+                    setConnectButtonState(false);
+                    return;
+                }
+
+                String issueStatus = null;
+
+                // Ensure that the username consists of only alphanumeric characters.
+                if (requestedUsername.matches(UsernameRequestPacket.INVALID_CHARACTER_REGEX)) {
+                    issueStatus = getString(R.string.username_character_error);
+                }
+                // Ensure that the username is more than MIN_LENGTH characters in length.
+                else if (requestedUsername.length() < UsernameRequestPacket.MIN_LENGTH) {
+                    issueStatus = getString(R.string.username_short_error);
+                }
+                // Ensure that the username is less than MAX_LENGTH characters in length.
+                else if (requestedUsername.length() > UsernameRequestPacket.MAX_LENGTH) {
+                    issueStatus = getString(R.string.username_long_error);
+                }
+
+                if(issueStatus != null) {
+                    lblStatus.setText(issueStatus);
+                    lblStatus.setTextColor(getColor(R.color.hot_topics_error_text));
+                    lblStatus.setVisibility(TextView.VISIBLE);
+                    setConnectButtonState(false);
+                }
+                else {
+                    lblStatus.setText(R.string.username_valid);
+                    lblStatus.setTextColor(getColor(R.color.hot_topics_blue));
+                    lblStatus.setVisibility(TextView.VISIBLE);
+                    setConnectButtonState(true);
+                }
+            }
+
+        });
+
     }
 
     @Override
     public void onBackPressed() {
         // Close the application
         this.finishAffinity();
-    }
-
-    /**
-     * Opens an alert dialog displaying the specified message.
-     * @param message message.
-     */
-    private void showAlertDialog(final String message) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(LoginActivity.this)
-                        .setMessage(message)
-                        .setCancelable(true)
-                        .setPositiveButton(R.string.message_box_button_ok, null);
-                alertBuilder.create().show();
-            }
-        });
-    }
-
-    /**
-     * Updates '@code LoginActivity'}s status text.
-     * @param status activity status.
-     */
-    private void setStatus(final String status) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                lblStatus.setText(status);
-            }
-        });
     }
 
     /**
@@ -147,7 +184,6 @@ public class LoginActivity extends Activity {
 
             // Attempt to connect to the Hot Topics server.
             Log.i(TAG, "Attempting to establish a connection to the Hot Topics server...");
-            setStatus(getString(R.string.status_connecting));
             WEB_SOCKET_COMMUNICATOR.connect();
             while (WEB_SOCKET_COMMUNICATOR.isConnecting()) {
                 Thread.yield();
@@ -211,7 +247,7 @@ public class LoginActivity extends Activity {
                 // If a connection could not be established, update its status bar to reflect this
                 // and re-enable the form before killing the thread.
                 if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
-                    setStatus(getString(R.string.status_connection_failed));
+                    //setStatus(getString(R.string.status_connection_failed), true);
                     setActivityState(true);
                     Log.d(TAG, String.format("Thread [%s] finished... (%d).",
                             getClass().getSimpleName(), Thread.currentThread().getId()));
@@ -219,7 +255,7 @@ public class LoginActivity extends Activity {
                 }
 
                 // A connection was established, update the form status to reflect this.
-                setStatus(getString(R.string.status_connected));
+                //setStatus(getString(R.string.status_connected), false);
             }
 
             // If an instance of the tRequestUsername thread exists, interrupt it and construct
@@ -244,7 +280,7 @@ public class LoginActivity extends Activity {
             // re-enable the form before killing the thread.
             UsernameResponsePacket responsePacket = (UsernameResponsePacket)requestUsernameTask.getResponse();
             if(responsePacket == null || !responsePacket.getResponse()) {
-                setStatus(getString(R.string.username_taken_error));
+                //setStatus(getString(R.string.username_taken_error), true);
                 setActivityState(true);
                 Log.d(TAG, String.format("Thread [%s] finished... (%d).",
                         getClass().getSimpleName(), Thread.currentThread().getId()));
@@ -278,21 +314,21 @@ public class LoginActivity extends Activity {
 
             // Ensure that the username consists of only alphanumeric characters.
             if (requestedUsername.matches(UsernameRequestPacket.INVALID_CHARACTER_REGEX)) {
-                showAlertDialog(getString(R.string.username_character_error));
+                //setStatus(getString(R.string.username_character_error), true);
                 setActivityState(true);
                 return;
             }
 
             // Ensure that the username is more than MIN_LENGTH characters in length.
             if (requestedUsername.length() < UsernameRequestPacket.MIN_LENGTH) {
-                showAlertDialog(getString(R.string.username_short_error));
+                //setStatus(getString(R.string.username_short_error), true);
                 setActivityState(true);
                 return;
             }
 
             // Ensure that the username is less than MAX_LENGTH characters in length.
             if (requestedUsername.length() > UsernameRequestPacket.MAX_LENGTH) {
-                showAlertDialog(getString(R.string.username_long_error));
+                //setStatus(getString(R.string.username_long_error), true);
                 setActivityState(true);
                 return;
             }

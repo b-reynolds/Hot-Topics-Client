@@ -7,11 +7,12 @@
     <string name="null_string">null</string>
 
     <!-- Invalid Username Errors -->
-    <string name="username_unknown_error">Invalid username.</string>
-    <string name="username_taken_error">A user with that name already exists.</string>
-    <string name="username_short_error">Usernames must contain at least 3 characters.</string>
-    <string name="username_long_error">Usernames cannot contain more than 12 characters.</string>
-    <string name="username_character_error">Usernames must consist of only alphanumeric characters</string>
+    <string name="username_valid">Looks good!</string>
+    <string name="username_unknown_error">Invalid Username.</string>
+    <string name="username_taken_error">Sorry, that name has already been taken :(</string>
+    <string name="username_short_error">That username\'s a little too short!</string>
+    <string name="username_long_error">That username\'s a little too long!</string>
+    <string name="username_character_error">Sorry, symbols aren\'t allowed.</string>
 
     <!-- Connection Errors -->
     <string name="connection_timeout_error">Connection timed out.</string>
