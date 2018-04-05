@@ -2,6 +2,7 @@ package io.benreynolds.hottopics;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.Objects;
@@ -49,6 +51,8 @@ public class LoginActivity extends Activity {
     /** Connect button. */
     private Button btnConnect;
 
+    private ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +63,7 @@ public class LoginActivity extends Activity {
 
         txtUsername = findViewById(R.id.txtUsername);
         btnConnect = findViewById(R.id.btnConnect);
+        progressBar = findViewById(R.id.progressBar);
 
 //        // Set the title text to be the app name and version number
 //        ((TextView)findViewById(R.id.lblTitle)).setText(String.format("%s (v%s)",
@@ -123,13 +128,13 @@ public class LoginActivity extends Activity {
                 if(issueStatus != null) {
                     lblStatus.setText(issueStatus);
                     lblStatus.setTextColor(getColor(R.color.hot_topics_error_text));
-                    lblStatus.setVisibility(TextView.VISIBLE);
+                    lblStatus.setVisibility(TextView.INVISIBLE);
                     setConnectButtonState(false);
                 }
                 else {
                     lblStatus.setText(R.string.username_valid);
                     lblStatus.setTextColor(getColor(R.color.hot_topics_blue));
-                    lblStatus.setVisibility(TextView.VISIBLE);
+                    lblStatus.setVisibility(TextView.INVISIBLE);
                     setConnectButtonState(true);
                 }
             }
@@ -227,6 +232,13 @@ public class LoginActivity extends Activity {
             // Disable the form whilst connecting and requesting the username.
             setActivityState(false);
 
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(ProgressBar.VISIBLE);
+                }
+            });
+
             // If a connection to the Hot Topics server is not established then establish one.
             if(!WEB_SOCKET_COMMUNICATOR.isConnected()) {
                 // If an instance of the tEstablishConnection thread exits, interrupt it before
@@ -249,6 +261,12 @@ public class LoginActivity extends Activity {
                 if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
                     //setStatus(getString(R.string.status_connection_failed), true);
                     setActivityState(true);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setVisibility(ProgressBar.GONE);
+                        }
+                    });
                     Log.d(TAG, String.format("Thread [%s] finished... (%d).",
                             getClass().getSimpleName(), Thread.currentThread().getId()));
                     return;
@@ -282,6 +300,12 @@ public class LoginActivity extends Activity {
             if(responsePacket == null || !responsePacket.getResponse()) {
                 //setStatus(getString(R.string.username_taken_error), true);
                 setActivityState(true);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(ProgressBar.GONE);
+                    }
+                });
                 Log.d(TAG, String.format("Thread [%s] finished... (%d).",
                         getClass().getSimpleName(), Thread.currentThread().getId()));
                 return;
@@ -289,6 +313,7 @@ public class LoginActivity extends Activity {
 
             // The username was accepted and assigned to the connection by the server, transition to
             // the RoomListActivity}.
+
             Intent roomList = new Intent(LoginActivity.this, RoomListActivity.class);
             startActivity(roomList);
             Log.d(TAG, String.format("Thread [%s] finished... (%d).", getClass().getSimpleName(),

@@ -65,9 +65,11 @@
         style="@android:style/Widget.Material.EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
+        android:backgroundTint="@color/hot_topics_blue"
+        android:digits="0123456789qwertzuiopasdfghjklyxcvbnm"
         android:ems="10"
         android:fontFamily="sans-serif"
         android:hint="Username"
@@ -77,8 +79,7 @@
         android:textAlignment="center"
         android:textColor="@color/hot_topics_blue_disabled"
         android:textSize="24sp"
-        android:digits="0123456789qwertzuiopasdfghjklyxcvbnm"
-        app:layout_constraintBottom_toTopOf="@+id/btnConnect"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
@@ -98,6 +99,21 @@
         android:textStyle="bold"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/txtUsername"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:indeterminateTint="@color/hot_topics_blue"
+        android:progressDrawable="@color/hot_topics_blue"
+        android:progressTint="@color/colorPrimary"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/btnConnect"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
