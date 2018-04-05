@@ -53,6 +53,21 @@ public class LoginActivity extends Activity {
 
     private ProgressBar progressBar;
 
+    private void setStatusText(final boolean visible) {
+        setStatusText(false, null, null);
+    }
+
+    private void setStatusText(final boolean visible, final String text, final Integer colour) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                lblStatus.setVisibility(visible ? TextView.VISIBLE : TextView.INVISIBLE);
+                lblStatus.setTextColor(colour);
+                lblStatus.setText(text);
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,15 +141,11 @@ public class LoginActivity extends Activity {
                 }
 
                 if(issueStatus != null) {
-                    lblStatus.setText(issueStatus);
-                    lblStatus.setTextColor(getColor(R.color.hot_topics_error_text));
-                    lblStatus.setVisibility(TextView.INVISIBLE);
+                    setStatusText(true, issueStatus, getColor(R.color.hot_topics_error_text));
                     setConnectButtonState(false);
                 }
                 else {
-                    lblStatus.setText(R.string.username_valid);
-                    lblStatus.setTextColor(getColor(R.color.hot_topics_blue));
-                    lblStatus.setVisibility(TextView.INVISIBLE);
+                    setStatusText(false, getString(R.string.username_valid), getColor(R.color.hot_topics_blue));
                     setConnectButtonState(true);
                 }
             }
@@ -259,7 +270,7 @@ public class LoginActivity extends Activity {
                 // If a connection could not be established, update its status bar to reflect this
                 // and re-enable the form before killing the thread.
                 if (!WEB_SOCKET_COMMUNICATOR.isConnected()) {
-                    //setStatus(getString(R.string.status_connection_failed), true);
+                    setStatusText(true, getString(R.string.status_connection_failed), getColor(R.color.hot_topics_error_text));
                     setActivityState(true);
                     runOnUiThread(new Runnable() {
                         @Override
@@ -298,7 +309,7 @@ public class LoginActivity extends Activity {
             // re-enable the form before killing the thread.
             UsernameResponsePacket responsePacket = (UsernameResponsePacket)requestUsernameTask.getResponse();
             if(responsePacket == null || !responsePacket.getResponse()) {
-                //setStatus(getString(R.string.username_taken_error), true);
+                setStatusText(true, getString(R.string.username_taken_error), getColor(R.color.hot_topics_error_text));
                 setActivityState(true);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -336,27 +347,6 @@ public class LoginActivity extends Activity {
 
             // Disable the form whilst validating the username.
             setActivityState(false);
-
-            // Ensure that the username consists of only alphanumeric characters.
-            if (requestedUsername.matches(UsernameRequestPacket.INVALID_CHARACTER_REGEX)) {
-                //setStatus(getString(R.string.username_character_error), true);
-                setActivityState(true);
-                return;
-            }
-
-            // Ensure that the username is more than MIN_LENGTH characters in length.
-            if (requestedUsername.length() < UsernameRequestPacket.MIN_LENGTH) {
-                //setStatus(getString(R.string.username_short_error), true);
-                setActivityState(true);
-                return;
-            }
-
-            // Ensure that the username is less than MAX_LENGTH characters in length.
-            if (requestedUsername.length() > UsernameRequestPacket.MAX_LENGTH) {
-                //setStatus(getString(R.string.username_long_error), true);
-                setActivityState(true);
-                return;
-            }
 
             // Connect to the server and request the specified username.
             new Thread(new LoginTask(requestedUsername)).start();

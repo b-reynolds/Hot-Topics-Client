@@ -46,7 +46,7 @@
         style="@android:style/Widget.Material.Button.Colored"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:background="@color/hot_topics_blue_disabled"
@@ -55,7 +55,7 @@
         android:textAppearance="@android:style/TextAppearance.Material.Button"
         android:textColor="@android:color/white"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
@@ -79,7 +79,7 @@
         android:textAlignment="center"
         android:textColor="@color/hot_topics_blue_disabled"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/progressBar"
+        app:layout_constraintBottom_toTopOf="@+id/btnConnect"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
@@ -113,7 +113,7 @@
         android:progressDrawable="@color/hot_topics_blue"
         android:progressTint="@color/colorPrimary"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/btnConnect"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
