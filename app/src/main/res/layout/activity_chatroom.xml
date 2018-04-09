@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@style/HotTopicsTheme"
     tools:context="io.benreynolds.hottopics.ChatroomActivity">
 
     <TextView
@@ -16,6 +17,7 @@
         android:text="Topic"
         android:textAlignment="center"
         android:textAppearance="@android:style/TextAppearance.Material.Headline"
+        android:textColor="@android:color/black"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -35,7 +37,8 @@
         android:inputType="text"
         android:maxLength="256"
         android:singleLine="true"
-        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnSend"
         app:layout_constraintStart_toStartOf="parent" />

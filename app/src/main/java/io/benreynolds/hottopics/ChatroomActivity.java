@@ -1,7 +1,14 @@
 package io.benreynolds.hottopics;
 
 import android.content.Intent;
+import android.content.RestrictionEntry;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -42,6 +49,9 @@ public class ChatroomActivity extends ConnectedActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatroom);
+
+        getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
+        getActionBar().setTitle(Html.fromHtml("<font color=\"#FFFFFF\">" + getString(R.string.app_name) + "</font>"));
 
         // Setup the chatroom message list adapter
         mMessageListAdapter = new ChatMessageListAdapter(this, mMessages);
