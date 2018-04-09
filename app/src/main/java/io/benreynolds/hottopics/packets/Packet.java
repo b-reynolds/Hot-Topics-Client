@@ -3,12 +3,14 @@ package io.benreynolds.hottopics.packets;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * {@code Packet} is the base class extended by all of the Hot Topics {@code Packet} classes ({@code SendMessagePacket},
  * {@code ReceiveMessagePacket}) that are used for WebSocket communications. {@code Packet} classes are intended to be
  * serialized and deserialized by the client and server applications using Google's Gson library.
  */
-public abstract class Packet {
+public abstract class Packet implements Serializable {
 
     /** Unique ID of the {@code Packet} */
     @SerializedName("id")

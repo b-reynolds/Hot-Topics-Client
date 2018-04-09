@@ -11,7 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="io.benreynolds.hottopics.LoginActivity" android:screenOrientation="portrait">
+        <activity android:name="io.benreynolds.hottopics.LoginActivity" android:screenOrientation="portrait"
+            android:theme="@style/HotTopicsTheme">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

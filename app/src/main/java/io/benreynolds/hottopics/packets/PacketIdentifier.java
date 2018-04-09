@@ -29,7 +29,8 @@ public class PacketIdentifier {
         JoinChatroomRequestPacket.class,
         JoinChatroomResponsePacket.class,
         LeaveChatroomRequestPacket.class,
-        LeaveChatroomResponsePacket.class
+        LeaveChatroomResponsePacket.class,
+        ChatroomUserCountUpdatePacket.class
     );
 
     /** Current ID value. */

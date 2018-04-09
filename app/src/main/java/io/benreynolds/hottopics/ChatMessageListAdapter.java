@@ -35,7 +35,7 @@ public class ChatMessageListAdapter extends ArrayAdapter<ReceiveMessagePacket> {
             message.setText(R.string.null_string);
         }
         else {
-            userName.setText(String.format("%s:", receiveMessagePacket.getAuthor()));
+            userName.setText(receiveMessagePacket.getAuthor());
             message.setText(receiveMessagePacket.getMessage());
         }
 
