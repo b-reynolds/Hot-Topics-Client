@@ -32,9 +32,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="XXX User(s)"
-            android:textAppearance="@android:style/TextAppearance.Material.Caption"
-            android:textColor="@color/hot_topics_black_faint"
-            android:textSize="14sp"
+            android:textAppearance="@android:style/TextAppearance.Material.Small"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>

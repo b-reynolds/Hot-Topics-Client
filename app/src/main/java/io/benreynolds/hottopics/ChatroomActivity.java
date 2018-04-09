@@ -17,6 +17,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import io.benreynolds.hottopics.packets.Chatroom;
+import io.benreynolds.hottopics.packets.ChatroomUserCountUpdatePacket;
 import io.benreynolds.hottopics.packets.LeaveChatroomRequestPacket;
 import io.benreynolds.hottopics.packets.LeaveChatroomResponsePacket;
 import io.benreynolds.hottopics.packets.ReceiveMessagePacket;
@@ -38,7 +39,16 @@ public class ChatroomActivity extends ConnectedActivity {
     /** Chat message field. */
     private EditText mMessage;
 
+    private TextView lblTitle;
+    private TextView lblUsers;
+
+
     private Chatroom mChatroom;
+
+
+    private LeaveChatroomResponseObserver leaveChatroomResponseObserver;
+    private ReceiveMessageObserver receiveMessageObserver;
+    private ChatroomUserCountUpdateObserver chatroomUserCountUpdateObserver;
 
     @Override
     public void onBackPressed() {
@@ -62,8 +72,11 @@ public class ChatroomActivity extends ConnectedActivity {
         mChatroom = (Chatroom) getIntent().getSerializableExtra(RoomListActivity.EXTRA_ROOM);
 
         // Set the chatroom name header text.
-        TextView lblTitle = findViewById(R.id.lblTitle);
+        lblTitle = findViewById(R.id.lblTitle);
         lblTitle.setText(mChatroom.getName());
+
+        lblUsers = findViewById(R.id.lblUsers);
+        lblUsers.setText(String.format("%s User(s)", mChatroom.getSize() + 1));
 
         // Add the newly received message to the message list.
         mMessages.addAll(mChatroom.getMessages());
@@ -78,11 +91,14 @@ public class ChatroomActivity extends ConnectedActivity {
         findViewById(R.id.btnSend).setOnClickListener(new BtnSendOnClickListener());
 
         // Instantiate and add observers to the WebSocketCommunicator that handle leaving the chatroom and receiving messages.
-        LeaveChatroomResponseObserver leaveChatroomResponseObserver = new LeaveChatroomResponseObserver();
+        leaveChatroomResponseObserver = new LeaveChatroomResponseObserver();
         WEB_SOCKET_COMMUNICATOR.addObserver(leaveChatroomResponseObserver);
 
-        ReceiveMessageObserver receiveMessageObserver = new ReceiveMessageObserver();
+        receiveMessageObserver = new ReceiveMessageObserver();
         WEB_SOCKET_COMMUNICATOR.addObserver(receiveMessageObserver);
+
+        chatroomUserCountUpdateObserver = new ChatroomUserCountUpdateObserver();
+        WEB_SOCKET_COMMUNICATOR.addObserver(chatroomUserCountUpdateObserver);
     }
 
     /**
@@ -123,6 +139,10 @@ public class ChatroomActivity extends ConnectedActivity {
                 return;
             }
 
+            WEB_SOCKET_COMMUNICATOR.removeObserver(receiveMessageObserver);
+            WEB_SOCKET_COMMUNICATOR.removeObserver(leaveChatroomResponseObserver);
+            WEB_SOCKET_COMMUNICATOR.removeObserver(chatroomUserCountUpdateObserver);
+
             // Take the user back to the RoomList activity.
             Intent roomListActivity = new Intent(ChatroomActivity.this, RoomListActivity.class);
             startActivity(roomListActivity);
@@ -159,6 +179,29 @@ public class ChatroomActivity extends ConnectedActivity {
         @Override
         public Class<ReceiveMessagePacket> packetType() {
             return ReceiveMessagePacket.class;
+        }
+
+    }
+
+    /**
+     * {@code ChatroomUserCountUpdateObserver} is responsible for processing '{@code ChatroomUserCountUpdatePacket}'s.
+     */
+    private class ChatroomUserCountUpdateObserver implements PacketObserver<ChatroomUserCountUpdatePacket> {
+
+        @Override
+        public void update(final ChatroomUserCountUpdatePacket packet) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    lblTitle.setText(mChatroom.getName());
+                    lblUsers.setText(String.format("%s User(s)", packet.getResponse()));
+                }
+            });
+        }
+
+        @Override
+        public Class<ChatroomUserCountUpdatePacket> packetType() {
+            return ChatroomUserCountUpdatePacket.class;
         }
 
     }
