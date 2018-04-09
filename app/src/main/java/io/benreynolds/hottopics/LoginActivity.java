@@ -61,7 +61,7 @@ public class LoginActivity extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                lblStatus.setVisibility(visible ? TextView.VISIBLE : TextView.INVISIBLE);
+                lblStatus.setVisibility(visible ? TextView.VISIBLE : TextView.GONE);
                 lblStatus.setTextColor(colour);
                 lblStatus.setText(text);
             }
@@ -120,7 +120,7 @@ public class LoginActivity extends Activity {
                 String requestedUsername = txtUsername.getText().toString().trim();
 
                 if(requestedUsername.isEmpty()) {
-                    lblStatus.setVisibility(TextView.INVISIBLE);
+                    lblStatus.setVisibility(TextView.GONE);
                     setConnectButtonState(false);
                     return;
                 }
