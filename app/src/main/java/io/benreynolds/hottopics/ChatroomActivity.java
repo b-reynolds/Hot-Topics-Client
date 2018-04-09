@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import io.benreynolds.hottopics.packets.Chatroom;
 import io.benreynolds.hottopics.packets.LeaveChatroomRequestPacket;
 import io.benreynolds.hottopics.packets.LeaveChatroomResponsePacket;
 import io.benreynolds.hottopics.packets.ReceiveMessagePacket;
@@ -30,6 +31,8 @@ public class ChatroomActivity extends ConnectedActivity {
     /** Chat message field. */
     private EditText mMessage;
 
+    private Chatroom mChatroom;
+
     @Override
     public void onBackPressed() {
         WEB_SOCKET_COMMUNICATOR.sendPacket(new LeaveChatroomRequestPacket());
@@ -46,9 +49,20 @@ public class ChatroomActivity extends ConnectedActivity {
         mMessageList.setAdapter(mMessageListAdapter);
         mMessage = findViewById(R.id.txtMessage);
 
+        mChatroom = (Chatroom) getIntent().getSerializableExtra(RoomListActivity.EXTRA_ROOM);
+
         // Set the chatroom name header text.
         TextView lblTitle = findViewById(R.id.lblTitle);
-        lblTitle.setText(getIntent().getStringExtra(RoomListActivity.ROOM_NAME_EXTRA));
+        lblTitle.setText(mChatroom.getName());
+
+        // Add the newly received message to the message list.
+        mMessages.addAll(mChatroom.getMessages());
+
+        // Notify the message list adapter that a new message has been added.
+        mMessageListAdapter.notifyDataSetChanged();
+
+        // Scroll to message list the latest entry.
+        mMessageList.setSelection(mMessageList.getCount() - 1);
 
         // Assign the send button's OnClick listener.
         findViewById(R.id.btnSend).setOnClickListener(new BtnSendOnClickListener());

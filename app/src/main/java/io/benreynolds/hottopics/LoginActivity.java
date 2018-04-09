@@ -145,7 +145,7 @@ public class LoginActivity extends Activity {
                     setConnectButtonState(false);
                 }
                 else {
-                    setStatusText(false, getString(R.string.username_valid), getColor(R.color.hot_topics_blue));
+                    setStatusText(true, getString(R.string.username_valid), getColor(R.color.hot_topics_blue));
                     setConnectButtonState(true);
                 }
             }
@@ -242,6 +242,9 @@ public class LoginActivity extends Activity {
 
             // Disable the form whilst connecting and requesting the username.
             setActivityState(false);
+
+            setStatusText(true, getString(R.string.status_connecting), getColor(R.color.hot_topics_blue));
+
 
             runOnUiThread(new Runnable() {
                 @Override

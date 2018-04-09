@@ -1,6 +1,8 @@
 package io.benreynolds.hottopics;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,7 +24,8 @@ import io.benreynolds.hottopics.packets.JoinChatroomResponsePacket;
 public class RoomListActivity extends ConnectedActivity {
 
     /** String key for the name of the chatroom sent to {@code ChatroomActivity} */
-    public static final String ROOM_NAME_EXTRA = "ROOM_NAME";
+    public static final String EXTRA_ROOM = "ROOM";
+
 
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
     private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
@@ -42,6 +45,9 @@ public class RoomListActivity extends ConnectedActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room_list);
+        setTheme(R.style.HotTopicsTheme);
+//        getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
+//        getActionBar().set
 
         // Setup the chatroom list adapter
         mChatroomsAdapter = new ChatroomListAdapter(this, mChatrooms);
@@ -141,11 +147,18 @@ public class RoomListActivity extends ConnectedActivity {
             }
 
             // Prepare transition to ChatroomActivity, include an extra containing the chatroom's name so that it can be used to display above the message feed.
-            Intent chatRoom = new Intent(RoomListActivity.this, ChatroomActivity.class);
-            chatRoom.putExtra(ROOM_NAME_EXTRA, mChatroomName);
+            Intent chatRoomActivity = new Intent(RoomListActivity.this, ChatroomActivity.class);
+
+            for(Chatroom chatroom : mChatrooms) {
+                if(chatroom.getName().equals(mChatroomName)) {
+                    chatRoomActivity.putExtra(EXTRA_ROOM, chatroom);
+                    break;
+                }
+            }
+
 
             // Transition to the ChatroomActivity
-            startActivity(chatRoom);
+            startActivity(chatRoomActivity);
         }
 
         @Override

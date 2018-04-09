@@ -13,24 +13,28 @@
         <TextView
             android:id="@+id/textView_roomName"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:gravity="center"
             android:text="Trend Name"
             android:textAppearance="@android:style/TextAppearance.Material.Menu"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView_roomSize"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:gravity="center"
             android:text="XXX User(s)"
             android:textAppearance="@android:style/TextAppearance.Material.Caption"
+            android:textColor="@color/hot_topics_black_faint"
+            android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>
