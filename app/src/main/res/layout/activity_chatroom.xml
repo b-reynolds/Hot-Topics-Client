@@ -29,22 +29,30 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
+        android:backgroundTint="@color/hot_topics_blue"
         android:ems="10"
+        android:hint="Message"
         android:inputType="text"
+        android:maxLength="256"
+        android:singleLine="true"
+        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnSend"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/btnSend"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginEnd="8dp"
+        android:background="@color/hot_topics_blue"
         android:text="Send"
         android:textAppearance="@android:style/TextAppearance.Material.Button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/txtMessage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtMessage" />
 
     <ListView
         android:id="@+id/lstMessages"

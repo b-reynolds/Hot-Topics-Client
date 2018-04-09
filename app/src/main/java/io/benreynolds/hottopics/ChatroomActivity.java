@@ -85,7 +85,12 @@ public class ChatroomActivity extends ConnectedActivity {
         @Override
         public void onClick(View view) {
             // Create a SendMessagePacket from the users message.
-            SendMessagePacket sendMessagePacket = new SendMessagePacket(mMessage.getText().toString());
+            SendMessagePacket sendMessagePacket = new SendMessagePacket(mMessage.getText().toString().trim());
+
+            if(sendMessagePacket.getMessage().isEmpty()) {
+                return;
+            }
+
             // Clear the message field.
             mMessage.setText("");
             // Send the Packet.
