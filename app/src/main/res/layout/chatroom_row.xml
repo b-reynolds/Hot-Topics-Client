@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:baselineAligned="false">
@@ -8,11 +9,12 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:descendantFocusability="blocksDescendants"
         android:layout_weight="1">
 
         <TextView
-            android:id="@+id/textView_roomName"
-            android:layout_width="0dp"
+            android:id="@+id/tvChatroomName"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
@@ -23,12 +25,12 @@
             android:textAlignment="textStart"
             android:textAppearance="@android:style/TextAppearance.Material.Menu"
             android:textColor="@android:color/black"
-            android:textSize="18sp"
+            android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/textView_roomSize"
+            android:id="@+id/tvUsersInChatroom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -39,8 +41,23 @@
             android:text="XXX User(s)"
             android:textAlignment="textEnd"
             android:textAppearance="@android:style/TextAppearance.Material.Small"
+            app:layout_constraintEnd_toStartOf="@+id/ibSearch"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/ibSearch"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:attr/actionModeWebSearchDrawable"
+            android:backgroundTint="@color/hot_topics_blue"
+            android:elevation="14dp"
+            android:maxHeight="64dp"
+            android:maxWidth="64dp"
+            app:layout_constraintBottom_toBottomOf="@+id/tvUsersInChatroom"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
     </android.support.constraint.ConstraintLayout>
 
 </LinearLayout>
