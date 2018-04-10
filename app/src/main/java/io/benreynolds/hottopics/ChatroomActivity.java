@@ -62,8 +62,10 @@ public class ChatroomActivity extends ConnectedActivity {
         setContentView(R.layout.activity_chatroom);
 
         // Set the action bar background and text colour.
-        getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
-        getActionBar().setTitle(Html.fromHtml("<font color=\"#FFFFFF\">" + getString(R.string.app_name) + "</font>"));
+        if(getActionBar() != null) {
+            getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
+            getActionBar().setTitle(Html.fromHtml("<font color=\"#FFFFFF\">" + getString(R.string.app_name) + "</font>"));
+        }
 
         // Retrieve the active chatroom from the serialized extra stored upon room selection.
         mActiveChatroom = (Chatroom) getIntent().getSerializableExtra(RoomListActivity.EXTRA_ROOM);
