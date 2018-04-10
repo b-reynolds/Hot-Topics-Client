@@ -26,7 +26,6 @@ public class RoomListActivity extends ConnectedActivity {
     /** String key for the name of the chatroom sent to {@code ChatroomActivity} */
     public static final String EXTRA_ROOM = "ROOM";
 
-
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
     private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
 

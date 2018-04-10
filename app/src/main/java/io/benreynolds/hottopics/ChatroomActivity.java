@@ -20,6 +20,10 @@ import io.benreynolds.hottopics.packets.LeaveChatroomResponsePacket;
 import io.benreynolds.hottopics.packets.ReceiveMessagePacket;
 import io.benreynolds.hottopics.packets.SendMessagePacket;
 
+/**
+ * {@code ChatroomActivity} allows users to send and receive messages within a {@code Chatroom}.
+ * It is navigated to by {@code RoomListActivity} when a user selects a chatroom.
+ */
 public class ChatroomActivity extends ConnectedActivity {
 
     /** TAG used in Logcat logs outputted by {@code ChatroomActivity}. */
@@ -41,14 +45,14 @@ public class ChatroomActivity extends ConnectedActivity {
     /** Text that displays the amount of users present in the active chatroom */
     private TextView tvUsersInChatroom;
 
-    /** List view and related objects used to display chat messages */
+    /** List view and related objects used to display chat messages. */
     final ArrayList<ReceiveMessagePacket> mMessages = new ArrayList<>();
     private ChatMessageListAdapter mMessageListAdapter;
     private ListView lvMessageFeed;
 
     @Override
     public void onBackPressed() {
-        // Send a request to the server to be removed from the active chatroom (see LeaveChatroomResponseHandler)
+        // Send a request to the server to be removed from the active chatroom (see LeaveChatroomResponseHandler).
         WEB_SOCKET_COMMUNICATOR.sendPacket(new LeaveChatroomRequestPacket());
     }
 
@@ -57,22 +61,22 @@ public class ChatroomActivity extends ConnectedActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatroom);
 
-        // Set the action bar background and text colour
+        // Set the action bar background and text colour.
         getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
         getActionBar().setTitle(Html.fromHtml("<font color=\"#FFFFFF\">" + getString(R.string.app_name) + "</font>"));
 
-        // Retrieve the active chatroom from the serialized extra stored upon room selection
+        // Retrieve the active chatroom from the serialized extra stored upon room selection.
         mActiveChatroom = (Chatroom) getIntent().getSerializableExtra(RoomListActivity.EXTRA_ROOM);
 
-        // Display the active chatroom's name
+        // Display the active chatroom's name.
         tvChatroomName = findViewById(R.id.tvChatroomName);
         tvChatroomName.setText(mActiveChatroom.getName());
 
-        // Display the amount of users present within the active chatroom (incremented to account for this user joining)
+        // Display the amount of users present within the active chatroom (incremented to account for this user joining).
         tvUsersInChatroom = findViewById(R.id.tvUsersInChatroom);
         tvUsersInChatroom.setText(String.format("%s User(s)", mActiveChatroom.getSize() + 1));
 
-        // Setup the chat message feed and related objects
+        // Setup the chat message feed and related objects.
         mMessageListAdapter = new ChatMessageListAdapter(this, mMessages);
         lvMessageFeed = findViewById(R.id.lvMessageFeed);
         lvMessageFeed.setAdapter(mMessageListAdapter);
@@ -84,7 +88,7 @@ public class ChatroomActivity extends ConnectedActivity {
         mMessageListAdapter.notifyDataSetChanged();
         lvMessageFeed.setSelection(lvMessageFeed.getCount() - 1);
 
-        // Obtain a reference to the chat message box widget
+        // Obtain a reference to the chat message box widget.
         etMessageBox = findViewById(R.id.etMessageBox);
 
         // Assign the send button's OnClick listener to handle the sending of messages.
@@ -100,7 +104,7 @@ public class ChatroomActivity extends ConnectedActivity {
         mPacketHandlers.add(chatroomUserCountUpdateHandler);
         WEB_SOCKET_COMMUNICATOR.addHandler(chatroomUserCountUpdateHandler);
 
-        // Add a ChatroomUserCountUpdateHandler to the WebSocketCommunicator that handles users requests to leave the active chatroom (see onBackButtonPressed())
+        // Add a ChatroomUserCountUpdateHandler to the WebSocketCommunicator that handles users requests to leave the active chatroom (see onBackButtonPressed()).
         LeaveChatroomResponsePacketHandler leaveChatroomResponsePacketHandler = new LeaveChatroomResponsePacketHandler();
         mPacketHandlers.add(leaveChatroomResponsePacketHandler);
         WEB_SOCKET_COMMUNICATOR.addHandler(leaveChatroomResponsePacketHandler);
@@ -114,10 +118,10 @@ public class ChatroomActivity extends ConnectedActivity {
 
         @Override
         public void onClick(View view) {
-            // Obtain the user's message and trim any leading or trailing spaces
+            // Obtain the user's message and trim any leading or trailing spaces.
             String messageToSend = etMessageBox.getText().toString().trim();
 
-            // Construct a SendMessagePacket and, if valid, send it to the server
+            // Construct a SendMessagePacket and, if valid, send it to the server.
             SendMessagePacket sendMessagePacket = new SendMessagePacket(messageToSend);
             if(sendMessagePacket.isValid()) {
                 WEB_SOCKET_COMMUNICATOR.sendPacket(sendMessagePacket);
