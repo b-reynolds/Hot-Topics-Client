@@ -9,7 +9,7 @@
     tools:context="io.benreynolds.hottopics.RoomListActivity">
 
     <TextView
-        android:id="@+id/lblTitle"
+        android:id="@+id/tvChatroomName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/hot_topics_grey"
@@ -38,6 +38,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lblTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/tvChatroomName" />
 
 </android.support.constraint.ConstraintLayout>

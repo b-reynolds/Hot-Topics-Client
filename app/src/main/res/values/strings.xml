@@ -25,5 +25,9 @@
     <string name="status_connecting">Connecting…</string>
     <string name="status_connected">Connected.</string>
     <string name="status_connection_failed">Connection failed.</string>
+    <string name="chatroom_activity_room_name_default">Room Name</string>
+    <string name="chatroom_activity_room_send_button_text">Send</string>
+    <string name="chatroom_activity_message_box_hint">Message</string>
+    <string name="chatroom_activity_users_in_room_default">X User(s)</string>
 
 </resources>

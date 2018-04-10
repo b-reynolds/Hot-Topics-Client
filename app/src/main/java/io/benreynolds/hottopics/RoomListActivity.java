@@ -1,7 +1,6 @@
 package io.benreynolds.hottopics;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Html;
@@ -60,7 +59,7 @@ public class RoomListActivity extends ConnectedActivity {
 
         // Instantiate and attach the observer that handles chatroom list responses
         chatroomsResponsePacketHandler = new ChatroomsResponsePacketHandler();
-        WEB_SOCKET_COMMUNICATOR.addObserver(chatroomsResponsePacketHandler);
+        WEB_SOCKET_COMMUNICATOR.addHandler(chatroomsResponsePacketHandler);
 
         // Send a ChatRoomsRequestPacket to the server
         WEB_SOCKET_COMMUNICATOR.sendPacket(new ChatroomsRequestPacket());
@@ -70,10 +69,10 @@ public class RoomListActivity extends ConnectedActivity {
     public void onBackPressed() {
         // Remove all observers attached within this activity from the WebSocketCommunicator
         if(chatroomsResponsePacketHandler != null) {
-            WEB_SOCKET_COMMUNICATOR.removeObserver(chatroomsResponsePacketHandler);
+            WEB_SOCKET_COMMUNICATOR.removeHandler(chatroomsResponsePacketHandler);
         }
         if(joinChatroomResponsePacketHandler != null) {
-            WEB_SOCKET_COMMUNICATOR.removeObserver(joinChatroomResponsePacketHandler);
+            WEB_SOCKET_COMMUNICATOR.removeHandler(joinChatroomResponsePacketHandler);
         }
 
         // TODO: Prompt the user to confirm/deny that they would like to disconnect from the server.
@@ -112,7 +111,7 @@ public class RoomListActivity extends ConnectedActivity {
 
             // Instantiate and attach a JoinChatroomResponsePacketHandler to the WebSocketCommunicator to handle ChatroomRequestPacket responses
             joinChatroomResponsePacketHandler = new JoinChatroomResponsePacketHandler(selectedRoom.getName());
-            WEB_SOCKET_COMMUNICATOR.addObserver(joinChatroomResponsePacketHandler);
+            WEB_SOCKET_COMMUNICATOR.addHandler(joinChatroomResponsePacketHandler);
 
             // Send a JoinChatroomRequestPacket to the Hot Topics server containing the name of the selected chatroom
             WEB_SOCKET_COMMUNICATOR.sendPacket(new JoinChatroomRequestPacket(selectedRoom.getName()));
@@ -123,7 +122,7 @@ public class RoomListActivity extends ConnectedActivity {
     /**
      * {@code JoinChatroomResponsePacketHandler} is responsible for processing '{@code JoinChatroomResponse}'s.
      */
-    private class JoinChatroomResponsePacketHandler implements PacketObserver<JoinChatroomResponsePacket> {
+    private class JoinChatroomResponsePacketHandler implements PacketHandler<JoinChatroomResponsePacket> {
 
         /** Name of the chatroom the user wants to join */
         private final String mChatroomName;
@@ -138,7 +137,7 @@ public class RoomListActivity extends ConnectedActivity {
         @Override
         public void update(JoinChatroomResponsePacket packet) {
             // Remove this observer from the WebSocketCommunicator.
-            WEB_SOCKET_COMMUNICATOR.removeObserver(this);
+            WEB_SOCKET_COMMUNICATOR.removeHandler(this);
 
             // TODO: Improve handling of negative responses to 'JoinChatroomRequestPacket's (Are they even required?)
             if(!packet.getResponse()) {
@@ -172,7 +171,7 @@ public class RoomListActivity extends ConnectedActivity {
     /**
      * {@code ChatroomsResponsePacketHandler} is responsible for processing '{@code ChatroomsResponsePacket}'s.
      */
-    private class ChatroomsResponsePacketHandler implements PacketObserver<ChatroomsResponsePacket> {
+    private class ChatroomsResponsePacketHandler implements PacketHandler<ChatroomsResponsePacket> {
 
         @Override
         public void update(ChatroomsResponsePacket packet) {

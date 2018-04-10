@@ -53,14 +53,16 @@ public class WebSocketCommunicator extends WebSocketListener {
     /** {@code true} if the {@code WebSocketCommunicator} has a connection to the server. */
     private boolean mConnected;
 
-    private List<PacketObserver> mObservers = new ArrayList<>();
+    private List<PacketHandler> mActiveHandlers = new ArrayList<>();
+    private List<PacketHandler> mHandlersToRemove = new ArrayList<>();
 
-    public void addObserver(PacketObserver packetObserver) {
-        mObservers.add(packetObserver);
+
+    public void addHandler(PacketHandler packetHandler) {
+        mActiveHandlers.add(packetHandler);
     }
 
-    public void removeObserver(PacketObserver packetObserver) {
-        mObservers.remove(packetObserver);
+    public void removeHandler(PacketHandler packetHandler) {
+        mHandlersToRemove.add(packetHandler);
     }
 
     /**
@@ -98,7 +100,7 @@ public class WebSocketCommunicator extends WebSocketListener {
 
     /** Private constructor used during {@code WebSocketCommunicator}'s singleton initialization
      * (see {@code getInstance()}. */
-    private WebSocketCommunicator() {}
+    private WebSocketCommunicator() { Log.w(TAG, "SINGLETON CONSTRUCTED");}
 
     /**
      * Invoked when a WebSocket has been accepted by the remote peer and may begin transmitting
@@ -135,9 +137,15 @@ public class WebSocketCommunicator extends WebSocketListener {
                     break;
                 }
 
-                for(PacketObserver packetObserver : mObservers) {
-                    if(packetObserver.packetType() == convertedPacket.getClass()) {
-                        packetObserver.update(convertedPacket);
+                for(PacketHandler packetHandler : mHandlersToRemove) {
+                    if(mActiveHandlers.contains(packetHandler)) {
+                        mActiveHandlers.remove(packetHandler);
+                    }
+                }
+
+                for(PacketHandler packetHandler : mActiveHandlers) {
+                    if(packetHandler != null && packetHandler.packetType() == convertedPacket.getClass()) {
+                        packetHandler.update(convertedPacket);
                     }
                 }
 
@@ -201,7 +209,7 @@ public class WebSocketCommunicator extends WebSocketListener {
             return;
         }
         if(mWebSocket != null && mConnected) {
-            //Log.d(TAG, String.format("Sending Packet: \"%s\".", packet.toString()));
+            Log.d(TAG, String.format("Packet Sent: \"%s\".", packet.toString()));
             mWebSocket.send(packet.toString());
         }
     }
