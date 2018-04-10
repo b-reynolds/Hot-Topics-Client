@@ -1,12 +1,16 @@
 package io.benreynolds.hottopics;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.text.Html;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -32,6 +36,9 @@ public class ChatroomActivity extends ConnectedActivity {
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
     private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
 
+    /** Alpha value used to fade out the chatroom's controls whilst waiting for a LeaveChatroomResponse (see onBackPressed) */
+    private static final float ALPHA_FADE_OUT = 0.33f;
+
     /** Stores handlers that are attached to the WebSocketCommunicator throughout this activity (for mass removal upon cleanup) */
     private Set<PacketHandler> mPacketHandlers = new HashSet<>();
 
@@ -45,6 +52,11 @@ public class ChatroomActivity extends ConnectedActivity {
     /** Text that displays the amount of users present in the active chatroom */
     private TextView tvUsersInChatroom;
 
+    /** Progress bar that is displayed whilst leaving the active chatroom */
+    private ProgressBar pbLeavingChatroom;
+    /** Constraint layout that contains all of the activities' views other than the progress bar (used to fade alpha whilst leaving the active chatroom) */
+    private ConstraintLayout clChatroom;
+
     /** List view and related objects used to display chat messages. */
     final ArrayList<ReceiveMessagePacket> mMessages = new ArrayList<>();
     private ChatMessageListAdapter mMessageListAdapter;
@@ -52,8 +64,19 @@ public class ChatroomActivity extends ConnectedActivity {
 
     @Override
     public void onBackPressed() {
+        // Fade the alpha value of the chatroom views and make them non-interactive.
+        clChatroom.setAlpha(ALPHA_FADE_OUT);
+        for(int i = 0; i < clChatroom.getChildCount(); i++) {
+            clChatroom.getChildAt(i).setEnabled(false);
+        }
+
+        // Display the progress bar
+        pbLeavingChatroom.setVisibility(ProgressBar.VISIBLE);
+
         // Send a request to the server to be removed from the active chatroom (see LeaveChatroomResponseHandler).
         WEB_SOCKET_COMMUNICATOR.sendPacket(new LeaveChatroomRequestPacket());
+
+        // TODO: What happens if no LeaveChatroomResponsePacket is received? (Implement a Runnable with a timeout period?)
     }
 
     @Override
@@ -92,6 +115,10 @@ public class ChatroomActivity extends ConnectedActivity {
 
         // Obtain a reference to the chat message box widget.
         etMessageBox = findViewById(R.id.etMessageBox);
+        // Obtain a reference to the progress bar widget.
+        pbLeavingChatroom = findViewById(R.id.pbLeavingChatroom);
+        // Obtain a reference to the constraint layout widget.
+        clChatroom = findViewById(R.id.clChatroom);
 
         // Assign the send button's OnClick listener to handle the sending of messages.
         findViewById(R.id.btnSend).setOnClickListener(new BtnSendOnClickListener());
