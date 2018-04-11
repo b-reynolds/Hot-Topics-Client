@@ -3,10 +3,12 @@ package io.benreynolds.hottopics;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.text.Html;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,10 +31,18 @@ public class RoomListActivity extends ConnectedActivity {
     /** Singleton instance of the {@code WebSocketCommunicator} used for network communications. */
     private static final WebSocketCommunicator WEB_SOCKET_COMMUNICATOR = WebSocketCommunicator.getInstance();
 
+    /** Alpha value used to fade out the chatroom's controls whilst waiting for a JoinChatroomResponse (see ChatroomListItemClickListener) */
+    private static final float ALPHA_FADE_OUT = 0.33f;
+
     /** List of available chatrooms. */
     final ArrayList<Chatroom> mChatrooms = new ArrayList<>();
     private ChatroomListAdapter mChatroomsAdapter;
     private ListView mChatroomList;
+
+    /** Progress bar that is displayed whilst joining a chatroom */
+    private ProgressBar pbLeavingChatroom;
+    /** Constraint layout that contains all of the activities' views other than the progress bar (used to fade alpha whilst joining a chatroom) */
+    private ConstraintLayout clRoomList;
 
     /** Observer used to handle the receipt of available Chatrooms */
     private ChatroomsResponsePacketHandler chatroomsResponsePacketHandler;
@@ -45,13 +55,21 @@ public class RoomListActivity extends ConnectedActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room_list);
 
-        getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
-        getActionBar().setTitle(Html.fromHtml("<font color=\"#FFFFFF\">" + getString(R.string.app_name) + "</font>"));
+        // Set the action bar background and text colour.
+        if(getActionBar() != null) {
+            getActionBar().setBackgroundDrawable(new ColorDrawable(getColor(R.color.hot_topics_blue)));
+            getActionBar().setTitle(Html.fromHtml("<font color=\"#FFFFFF\">" + getString(R.string.app_name) + "</font>"));
+        }
 
-        // Setup the chatroom list adapter
+        // Setup the chatroom feed and related objects.
         mChatroomsAdapter = new ChatroomListAdapter(this, mChatrooms);
-        mChatroomList = findViewById(R.id.lstRooms);
+        mChatroomList = findViewById(R.id.lvChatrooms);
         mChatroomList.setAdapter(mChatroomsAdapter);
+
+        // Obtain a reference to the progress bar widget.
+        pbLeavingChatroom = findViewById(R.id.pbLeavingChatroom);
+        // Obtain a reference to the constraint layout widget.
+        clRoomList = findViewById(R.id.clRoomList);
 
         // Assign the OnClick handler for handling room selection
         mChatroomList.setOnItemClickListener(new ChatroomListItemClickListener());
@@ -102,8 +120,14 @@ public class RoomListActivity extends ConnectedActivity {
 
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-            // Disable the UI controls
-            setActivityState(false);
+            // Fade the alpha value of the room list views and make them non-interactive.
+            clRoomList.setAlpha(ALPHA_FADE_OUT);
+            for(int i = 0; i < clRoomList.getChildCount(); i++) {
+                clRoomList.getChildAt(i).setEnabled(false);
+            }
+
+            // Display the progress bar
+            pbLeavingChatroom.setVisibility(ProgressBar.VISIBLE);
 
             // Get the name of the selected room from the chatroom list
             Chatroom selectedRoom = (Chatroom) mChatroomList.getItemAtPosition(position);

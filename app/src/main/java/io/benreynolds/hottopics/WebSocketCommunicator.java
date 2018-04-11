@@ -34,8 +34,8 @@ public class WebSocketCommunicator extends WebSocketListener {
     private static final int CLOSURE_NORMAL = 1000;
 
     /** Address of the Hot Topics server. */
-    //private static final String SERVER_ADDRESS = "ws://35.189.116.222:8025/hottopics/hottopics";
-    private static final String SERVER_ADDRESS = "ws://192.168.1.64:8025/hottopics/chat";
+    private static final String SERVER_ADDRESS = "ws://35.189.116.222:8025/hottopics/chat";
+    //private static final String SERVER_ADDRESS = "ws://192.168.1.64:8025/hottopics/chat";
 
     /** Stores a references the singleton instance of {@code WebSocketCommunicator}. */
     private static volatile WebSocketCommunicator mInstance;
