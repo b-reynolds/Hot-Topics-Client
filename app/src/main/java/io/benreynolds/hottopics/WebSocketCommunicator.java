@@ -13,6 +13,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
+import io.benreynolds.hottopics.packets.AcknowledgementRequestPacket;
+import io.benreynolds.hottopics.packets.AcknowledgementResponsePacket;
 import io.benreynolds.hottopics.packets.Packet;
 import io.benreynolds.hottopics.packets.PacketIdentifier;
 import io.benreynolds.hottopics.packets.UnidentifiedPacket;
@@ -128,6 +130,12 @@ public class WebSocketCommunicator extends WebSocketListener {
             return;
         }
 
+        for(PacketHandler packetHandler : mHandlersToRemove) {
+            if(mActiveHandlers.contains(packetHandler)) {
+                mActiveHandlers.remove(packetHandler);
+            }
+        }
+
         // TODO: ONLY ADD VALID PACKETS!!
         for (Map.Entry<Class<? extends Packet>, Integer> entry : PacketIdentifier.PACKET_IDS.entrySet()) {
             if (Objects.equals(unidentifiedPacket.getId(), entry.getValue())) {
@@ -137,10 +145,8 @@ public class WebSocketCommunicator extends WebSocketListener {
                     break;
                 }
 
-                for(PacketHandler packetHandler : mHandlersToRemove) {
-                    if(mActiveHandlers.contains(packetHandler)) {
-                        mActiveHandlers.remove(packetHandler);
-                    }
+                if(convertedPacket.getId().equals(AcknowledgementRequestPacket.ID)) {
+                    sendPacket(new AcknowledgementResponsePacket());
                 }
 
                 for(PacketHandler packetHandler : mActiveHandlers) {

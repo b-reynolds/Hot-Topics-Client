@@ -80,10 +80,6 @@ public class LoginActivity extends Activity {
         btnConnect = findViewById(R.id.btnConnect);
         progressBar = findViewById(R.id.progressBar);
 
-//        // Set the title text to be the app name and version number
-//        ((TextView)findViewById(R.id.lblTitle)).setText(String.format("%s (v%s)",
-//                getString(R.string.app_name), BuildConfig.VERSION_NAME));
-
         // Assign the connect button's OnClick listener.
         btnConnect.setOnClickListener(new BtnConnectOnClickListener());
 
